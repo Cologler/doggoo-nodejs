@@ -77,7 +77,7 @@ class MarkdownGenerator extends Generator {
         const novel = context.novel;
         const w = novel.chapters.length.toString().length;
         novel.chapters.forEach((z, i) => {
-            const text = this.toDoc(z);
+            const text = this.toDoc(z).trim();
             const index = (i + 1).toLocaleString('en', {
                 minimumIntegerDigits: w,
                 useGrouping: false
@@ -103,7 +103,7 @@ class MarkdownGenerator extends Generator {
     }
 
     onImageElement(node) {
-        return `![](${node.url})`;
+        return `![](${node.path})`;
     }
 
     onLinkElement(node) {

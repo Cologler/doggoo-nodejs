@@ -1,7 +1,8 @@
 'use strict';
 
 const URL = require('url');
-const { Novel, Chapter } = require('./model');
+const model = require('./model');
+const { Novel, Chapter } = model;
 
 class Parser {
     match(url) {
@@ -52,14 +53,45 @@ class LightNovelParser extends Parser {
         return URL.parse(url).hostname === 'www.lightnovel.cn';
     }
 
+    parseNovelInfo(novel, lines) {
+        let inTerms = false;
+        const terms = [];
+        for (const line of lines) {
+            if (/^(─+)|(\-+)$/.test(line)) {
+                inTerms = !inTerms;
+            } else if (inTerms) {
+                terms.push(line);
+            } else {
+
+            }
+        }
+    }
+
     parseChapter(context, node, index) {
         const novel = context.novel;
         const chapter = new Chapter();
         node.childNodes.forEach(z => {
             this.onNode(context, chapter, z);
         });
-        if (chapter.textLength > 100) {
-            novel.add(chapter);
+        if (index === 0) {
+            const first = chapter.contents.find(z => z instanceof model.TextElement);
+            if (first) {
+                novel.title = first.content;
+            }
+            const rawTexts = chapter.contents.map(z => {
+                if (z instanceof model.TextElement) {
+                    return z.content;
+                } else if (z instanceof model.LineBreak) {
+                    return '\n';
+                }
+            }).filter(z => z !== undefined);
+            if (rawTexts) {
+                this.parseNovelInfo(novel, rawTexts.slice(1));
+            }
+        }  {
+            if (chapter.textLength > 100) {
+                novel.add(chapter);
+            }
         }
     }
 

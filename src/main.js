@@ -7,10 +7,11 @@ const PATH = require('path');
 const { SessionContext } = require('./core');
 const { parsers } = require('./parser');
 const { getGenerator } = require('./generators.js');
+const { prepareNovel } = require('./pregen');
 
 async function requestData(url) {
     // TODO: das
-    let response = await request(url);
+    const response = await request(url);
     const body = response.body;
     return body;
 }
@@ -52,6 +53,7 @@ async function main() {
         window: dom.window
     });
     parser.parse(session);
+    await prepareNovel(session);
     generator.generate(session);
 }
 

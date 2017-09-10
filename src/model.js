@@ -18,21 +18,11 @@ class ImageElement extends ChapterElement { }
 
 class LinkElement extends ChapterElement { }
 
-class Chapter {
+class Section {
     constructor() {
-        this._title = '';
         this._contents = [];
         this._textLength = 0;
         this._textIndex = 0;
-        this._nodeIndex = 0;
-    }
-
-    get title() {
-        return this._title;
-    }
-
-    set title(value) {
-        this._title = value;
     }
 
     addText(text) {
@@ -45,10 +35,9 @@ class Chapter {
         this._contents.push(new TextElement({
             content: text,
             textIndex: this._textIndex,
-            nodeIndex: this._nodeIndex
+            nodeIndex: this._contents.length
         }));
         this._textIndex ++;
-        this._nodeIndex ++;
     }
 
     addLineBreak() {
@@ -57,17 +46,15 @@ class Chapter {
             return;
         }
         this._contents.push(new LineBreak({
-            nodeIndex: this._nodeIndex
+            nodeIndex: this._contents.length
         }));
-        this._nodeIndex ++;
     }
 
     addImage(url) {
         this._contents.push(new ImageElement({
             url: url,
-            nodeIndex: this._nodeIndex
+            nodeIndex: this._contents.length
         }));
-        this._nodeIndex ++;
     }
 
     addLink(url, title) {
@@ -75,9 +62,8 @@ class Chapter {
         this._contents.push(new LinkElement({
             url: url,
             title: title,
-            nodeIndex: this._nodeIndex
+            nodeIndex: this._contents.length
         }));
-        this._nodeIndex ++;
     }
 
     get contents() {
@@ -89,15 +75,30 @@ class Chapter {
     }
 }
 
-class Intro {
+class Chapter extends Section {
     constructor() {
+        super();
+        this._title = '';
+    }
 
+    get title() {
+        return this._title;
+    }
+
+    set title(value) {
+        this._title = value;
     }
 }
 
-class TOC {
+class Intro extends Section {
     constructor() {
+        super();
+    }
+}
 
+class ToC extends Section {
+    constructor() {
+        super();
     }
 }
 
