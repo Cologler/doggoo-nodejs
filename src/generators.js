@@ -45,13 +45,30 @@ class Generator {
 
 class TxtGenerator extends Generator {
     generate(context) {
-        const text = novel.chapters.map(z => z.toString()).join('\r\n');
+        const novel = context.novel;
+        const text = novel.chapters.map(z => this.toDoc(z)).join('\n\n\n\n');
         const filename = (novel.title || 'novel') + '.txt';
         const path = PATH.join(context.root, filename);
         fs.writeFileSync(path, text, {
             encoding: 'utf8',
             flag: 'w'
         });
+    }
+
+    onLineBreak(node) {
+        return '\n';
+    }
+
+    onTextElement(node) {
+        return node.content;
+    }
+
+    onImageElement(node) {
+        return `<此处为插图 ${node.url}>`;
+    }
+
+    onLinkElement(node) {
+        return node.url;
     }
 }
 
