@@ -31,7 +31,7 @@ function createRoot() {
 
 async function main() {
     let argv = process.argv;
-    argv = argv.concat(['https://www.lightnovel.cn/forum.php?mod=viewthread&tid=901113&highlight=%E7%A5%9E%E8%AF%9D%E4%BC%A0%E8%AF%B4']);
+
     if (argv.length < 3) {
         console.log('require url.');
         return;
