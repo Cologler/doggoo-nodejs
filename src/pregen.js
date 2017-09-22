@@ -44,6 +44,7 @@ class Preproccesser {
             flag: 'w'
         });
         img.path = path;
+        img.filename = filename;
     }
 
     async waitAll() {
