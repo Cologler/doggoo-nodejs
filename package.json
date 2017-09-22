@@ -6,9 +6,14 @@
   "dependencies": {
     "async-request": "^1.2.0",
     "bhttp": "^1.2.4",
-    "jsdom": "^11.2.0"
+    "epub-builder": "^1.2.5",
+    "jsdom": "^11.2.0",
+    "node-uuid": "^1.4.8",
+    "xml-escape": "^1.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/node-uuid": "0.0.28"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
