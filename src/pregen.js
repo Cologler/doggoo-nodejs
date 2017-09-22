@@ -25,6 +25,7 @@ class Preproccesser {
                 }
             }
         }
+        console.log(`[INFO] begin download ${index} images.`);
     }
 
     async onImage(root, index, img) {
@@ -54,6 +55,7 @@ async function prepareNovel(context) {
     const per = new Preproccesser();
     per.prepare(context);
     await per.waitAll();
+    console.log(`[INFO] download images completed.`);
 }
 
 module.exports = {
