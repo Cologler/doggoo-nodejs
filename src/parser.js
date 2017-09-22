@@ -98,7 +98,7 @@ class LightNovelParser extends Parser {
     parse(context) {
         const posters = Array.from(context.window.document.querySelectorAll('#postlist .pct .t_f'));
         posters.forEach(z => {
-            ['style', 'script', '.pstatus'].forEach(x => {
+            ['style', 'script', '.pstatus', '.quote'].forEach(x => {
                 z.querySelectorAll(x).forEach(c => c.remove());
             });
         });
