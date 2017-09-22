@@ -22,6 +22,13 @@ class Parser {
 
             case window.Node.ELEMENT_NODE:
                 switch (node.tagName) {
+                    case 'FONT':
+                    case 'STRONG':
+                        node.childNodes.forEach(z => {
+                            this.onNode(context, chapter, z);
+                        });
+                        break;
+
                     case 'A':
                         chapter.addLink(node.href, node.textContent);
                         break;
@@ -35,15 +42,12 @@ class Parser {
                         break;
 
                     default:
-                        console.log(`unhandled tag: $<${node.tagName}>`);
-                        console.log(node.innerHTML);
-                        throw '';
+                        throw Error(`unhandled node: $<${node.tagName}>\n${node.innerHTML}`);
                 }
                 break;
 
             default:
-                console.log(`unhandled nodeType: $<${node.nodeType}>`);
-                throw '';
+                throw Error(`unhandled NodeType: $<${node.nodeType}>`);
         }
     }
 }
@@ -88,10 +92,10 @@ class LightNovelParser extends Parser {
             if (rawTexts) {
                 this.parseNovelInfo(novel, rawTexts.slice(1));
             }
-        }  {
-            if (chapter.textLength > 100) {
-                novel.add(chapter);
-            }
+        }
+
+        if (chapter.textLength > 100) {
+            novel.add(chapter);
         }
     }
 
