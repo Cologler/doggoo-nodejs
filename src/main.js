@@ -29,29 +29,55 @@ function createRoot() {
     }
 }
 
-async function main() {
+function parseArgv() {
     let argv = process.argv;
+    let options = {};
 
     if (argv.length < 3) {
-        console.log('require url.');
-        return;
+        throw Error('require url.');
     }
 
-    const url = argv[2];
-    const parser = parsers.find(z => z.match(url));
+    options.url = argv[2];
+    options.args = {};
+
+    if (argv.length > 3) {
+        for (let i = 3; i < argv.length; i += 2) {
+            const key = argv[i];
+            if (argv.length === i + 1) {
+                throw Error(`args ${key} has no value.`);
+            }
+            const value = argv[i+1];
+            switch (key) {
+                case '--gen':
+                case '--cover':
+                    options.args[key] = value;
+                    break;
+                default:
+                    throw Error(`unknown args ${key}`);
+            }
+        }
+    }
+
+    return options;
+}
+
+async function main() {
+    const options = parseArgv();
+    const parser = parsers.find(z => z.match(options.url));
     if (!parser) {
         console.log('unknown url.');
         return;
     }
-    const generator = getGenerator('md');
-
-    const body = await requestData(url);
+    const generator = getGenerator(options.args['--gen']);
+    const body = await requestData(options.url);
     const dom = new jsdom.JSDOM(body);
-    const session = new SessionContext({
-        url: url,
+    Object.assign(options, {
         root: createRoot(),
         window: dom.window
     });
+
+    const session = new SessionContext(options);
+    process.chdir(session.root);
     parser.parse(session);
     await prepareNovel(session);
     generator.generate(session);
