@@ -66,9 +66,11 @@ async function main() {
     const options = parseArgv();
     const parser = parsers.find(z => z.match(options.url));
     if (!parser) {
-        console.log('unknown url.');
-        return;
+        throw Error(`Unknown source <${options.url}>.`);
+    } else {
+        console.log(`Matched parser <${parser.name}>.`);
     }
+
     const generator = getGenerator(options.args['--gen']);
     const body = await requestData(options.url);
     const dom = new jsdom.JSDOM(body);

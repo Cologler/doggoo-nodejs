@@ -5,6 +5,10 @@ const model = require('./model');
 const { Novel, Chapter } = model;
 
 class Parser {
+    get name() {
+        throw 'not impl.';
+    }
+
     match(url) {
         throw 'not impl.';
     }
@@ -55,8 +59,13 @@ class Parser {
 }
 
 class LightNovelParser extends Parser {
-    match(url) {
-        return URL.parse(url).hostname === 'www.lightnovel.cn';
+    get name() {
+        return 'LightNovel';
+    }
+
+    match(source) {
+        let url = URL.parse(source);
+        return url && url.hostname === 'www.lightnovel.cn';
     }
 
     parseNovelInfo(novel, lines) {
