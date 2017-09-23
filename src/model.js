@@ -73,6 +73,25 @@ class Section {
     get textLength() {
         return this._textLength;
     }
+
+    get textContents() {
+        let ret = [];
+        this._contents.forEach(z => {
+            if (z instanceof TextElement) {
+                if (ret.length === 0) {
+                    ret.push(z.content);
+                } else { // > 0
+                    ret[ret.length - 1] += z.content;
+                }
+            } else if (z instanceof LineBreak) {
+                if (ret.length > 0) {
+                    ret.push('');
+                }
+            }
+        });
+        ret = ret.filter(z => z !== '');
+        return ret;
+    }
 }
 
 class Chapter extends Section {

@@ -58,15 +58,21 @@ class LightNovelParser extends Parser {
     }
 
     parseNovelInfo(novel, lines) {
-        let inTerms = false;
-        const terms = [];
-        for (const line of lines) {
-            if (/^(─+)|(\-+)$/.test(line)) {
-                inTerms = !inTerms;
-            } else if (inTerms) {
-                terms.push(line);
-            } else {
+        { // title
+            if (lines.length > 0) {
+                novel.title = lines[0];
+            }
+            lines = lines.slice(1);
+        }
 
+        {
+            for (const line of lines) {
+                if (/作者/.test(line)) {
+                    const match = line.match(/作者[：:]?\s*(\W+)\s*$/);
+                    if (match) {
+                        novel.author = match[1];
+                    }
+                }
             }
         }
     }
@@ -77,21 +83,9 @@ class LightNovelParser extends Parser {
         node.childNodes.forEach(z => {
             this.onNode(context, chapter, z);
         });
+
         if (index === 0) {
-            const first = chapter.contents.find(z => z instanceof model.TextElement);
-            if (first) {
-                novel.title = first.content;
-            }
-            const rawTexts = chapter.contents.map(z => {
-                if (z instanceof model.TextElement) {
-                    return z.content;
-                } else if (z instanceof model.LineBreak) {
-                    return '\n';
-                }
-            }).filter(z => z !== undefined);
-            if (rawTexts) {
-                this.parseNovelInfo(novel, rawTexts.slice(1));
-            }
+            this.parseNovelInfo(novel, chapter.textContents);
         }
 
         if (chapter.textLength > 100) {
