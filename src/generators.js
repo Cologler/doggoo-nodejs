@@ -48,7 +48,7 @@ class TxtGenerator extends Generator {
         const novel = context.novel;
         const text = novel.chapters.map(z => this.toDoc(z)).join('\n\n\n\n');
         const filename = (novel.title || 'novel') + '.txt';
-        const path = PATH.join(context.root, filename);
+        const path = filename;
         fs.writeFileSync(path, text, {
             encoding: 'utf8',
             flag: 'w'
@@ -83,7 +83,7 @@ class MarkdownGenerator extends Generator {
                 useGrouping: false
             });
             const filename = `chapter-${index}.md`;
-            const path = PATH.join(context.root, filename);
+            const path = filename;
             fs.writeFileSync(path, text, {
                 encoding: 'utf8',
                 flag: 'w'
