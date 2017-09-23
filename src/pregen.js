@@ -30,7 +30,7 @@ class Preproccesser {
 
     async onImage(root, index, img) {
         const url = img.url;
-        const filename = index + PATH.extname(url);
+        const filename = `image-${index}${PATH.extname(url)}`;
         const path = PATH.join(root, filename);
 
         const promise = bhttp.get(url, {

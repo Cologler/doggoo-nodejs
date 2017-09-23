@@ -16,8 +16,8 @@ async function requestData(url) {
     return body;
 }
 
-function createRoot() {
-    const root = '.';
+function createRoot(output) {
+    const root = output || '.';
     let index = 1;
     while (true) {
         const path = PATH.join(root, 'novel-' + index);
@@ -31,14 +31,15 @@ function createRoot() {
 
 function parseArgv() {
     let argv = process.argv;
-    let options = {};
 
     if (argv.length < 3) {
         throw Error('require url.');
     }
 
-    options.url = argv[2];
-    options.args = {};
+    let options = {
+        url: argv[2],
+        args: {}
+    };
 
     if (argv.length > 3) {
         for (let i = 3; i < argv.length; i += 2) {
@@ -51,6 +52,7 @@ function parseArgv() {
                 case '--gen':
                 case '--cover':
                 case '--cc':
+                case '--output':
                     options.args[key] = value;
                     break;
                 default:
@@ -75,7 +77,7 @@ async function main() {
     const body = await requestData(options.url);
     const dom = new jsdom.JSDOM(body);
     Object.assign(options, {
-        root: createRoot(),
+        root: createRoot(options.args['--output']),
         window: dom.window
     });
 

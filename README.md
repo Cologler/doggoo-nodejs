@@ -24,15 +24,19 @@ node main.js https://www.lightnovel.cn/thread-899097-1-1.html --gen txt
 
 #### gen
 
-Setup output format.
+Set output format.
 
 * txt
 * epub (default)
 * markdown
 
+#### output
+
+Set output dir.
+
 #### cc
 
-Support chinese convert.
+Supported chinese convert:
 
 * hk2s : hongKongToSimplified,
 * s2hk : simplifiedToHongKong,
