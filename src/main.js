@@ -50,6 +50,7 @@ function parseArgv() {
             switch (key) {
                 case '--gen':
                 case '--cover':
+                case '--cc':
                     options.args[key] = value;
                     break;
                 default:

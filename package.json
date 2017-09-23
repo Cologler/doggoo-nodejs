@@ -8,6 +8,7 @@
     "bhttp": "^1.2.4",
     "epub-builder": "^1.2.5",
     "jsdom": "^11.2.0",
+    "node-opencc": "^2.0.1",
     "node-uuid": "^1.4.8",
     "xml-escape": "^1.1.0"
   },

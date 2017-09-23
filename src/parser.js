@@ -17,7 +17,8 @@ class Parser {
         const window = context.window;
         switch (node.nodeType) {
             case window.Node.TEXT_NODE:
-                chapter.addText(node.textContent);
+                const t = context.cc(node.textContent);
+                chapter.addText(t);
                 break;
 
             case window.Node.ELEMENT_NODE:
@@ -30,7 +31,8 @@ class Parser {
                         break;
 
                     case 'A':
-                        chapter.addLink(node.href, node.textContent);
+                        const t = context.cc(node.textContent);
+                        chapter.addLink(node.href, t);
                         break;
 
                     case 'BR':
