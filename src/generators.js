@@ -143,8 +143,10 @@ const EpubGenerator = (() => {
             }
 
             novel.chapters.forEach((z, i) => {
+                const txtEls = z.contents.filter(z => z instanceof model.TextElement);
+                const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
                 const text = this.toDoc(z).trim();
-                book.addChapter("Chapter Title", text);
+                book.addChapter(chapterTitle, text);
             });
             book.createBook(title);
         }
