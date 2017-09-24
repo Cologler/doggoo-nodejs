@@ -4,7 +4,7 @@ const request = require('async-request');
 const jsdom = require('jsdom');
 const fs = require('fs');
 const PATH = require('path');
-const { SessionContext } = require('./core');
+const { Args, SessionContext } = require('./core');
 const { parsers } = require('./parser');
 const { getGenerator } = require('./generators.js');
 const { prepareNovel } = require('./pregen');
@@ -29,48 +29,38 @@ function createRoot(output) {
     }
 }
 
-function parseArgv() {
+function getOptions() {
     let argv = process.argv;
 
     if (argv.length < 3) {
-        throw Error('require url.');
+        throw Error('Require source (maybe a url).');
     }
 
-    let options = {
-        url: argv[2],
-        args: {}
+    let options = null;
+    const firstArgs = argv[2];
+    if (argv.length === 3 && fs.existsSync(firstArgs)) {
+        options = JSON.parse(fs.readFileSync(firstArgs));
+    }
+
+    return options || {
+        url: firstArgs
     };
-
-    if (argv.length > 3) {
-        for (let i = 3; i < argv.length; i += 2) {
-            const key = argv[i];
-            if (argv.length === i + 1) {
-                throw Error(`args ${key} has no value.`);
-            }
-            const value = argv[i+1];
-            switch (key) {
-                case '--gen':
-                case '--cover':
-                case '--cc':
-                case '--output':
-                    options.args[key] = value;
-                    break;
-                default:
-                    throw Error(`unknown args ${key}`);
-            }
-        }
-    }
-
-    return options;
 }
 
 async function main() {
-    const options = parseArgv();
+    const options = getOptions();
     const parser = parsers.find(z => z.match(options.url));
     if (!parser) {
         throw Error(`Unknown source <${options.url}>.`);
     } else {
         console.log(`Matched parser <${parser.name}>.`);
+    }
+    if (process.argv.length > 3) {
+        const args = new Args();
+        parser.registerArgs(args);
+        options.args = args.parseArgs(process.argv.slice(3));
+    } else {
+        options.args = {};
     }
 
     const generator = getGenerator(options.args['--gen']);

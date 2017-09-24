@@ -5,17 +5,13 @@ const model = require('./model');
 const { Novel, Chapter } = model;
 
 class Parser {
-    get name() {
-        throw 'not impl.';
-    }
+    get name() { throw Error('not impl.'); }
 
-    match(url) {
-        throw 'not impl.';
-    }
+    match(url) { throw Error('not impl.'); }
 
-    parse(session) {
-        throw 'not impl.';
-    }
+    parse(session) { throw Error('not impl.'); }
+
+    registerArgs(args) { }
 
     onNode(context, chapter, node) {
         const window = context.window;
@@ -55,6 +51,22 @@ class Parser {
             default:
                 throw Error(`unhandled NodeType: $<${node.nodeType}>`);
         }
+    }
+}
+
+class TiebaParser extends Parser {
+    get name() {
+        return 'Tieba';
+    }
+
+    match(source) {
+        if (source === 'tieba') {
+            return true;
+        }
+    }
+
+    registerArgs(args) {
+        args.registerArgName('--input');
     }
 }
 
@@ -119,7 +131,8 @@ class LightNovelParser extends Parser {
 }
 
 const parsers = [
-    new LightNovelParser()
+    new LightNovelParser(),
+    new TiebaParser()
 ];
 
 
