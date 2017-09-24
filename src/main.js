@@ -60,7 +60,7 @@ async function main() {
         parser.registerArgs(args);
         options.args = args.parseArgs(process.argv.slice(3));
     } else {
-        options.args = {};
+        options.args = options.args || {};
     }
 
     const generator = getGenerator(options.args['--gen']);
