@@ -11,13 +11,13 @@ Just download the novel.
 open cmd.exe, try input:
 
 ``` cmd
-node main.js https://www.lightnovel.cn/thread-899097-1-1.html
+doggoo.exe https://www.lightnovel.cn/thread-899097-1-1.html
 ```
 
 if you try to output txt file, try:
 
 ``` cmd
-node main.js https://www.lightnovel.cn/thread-899097-1-1.html --gen txt
+doggoo.exe https://www.lightnovel.cn/thread-899097-1-1.html --gen txt
 ```
 
 ### options
