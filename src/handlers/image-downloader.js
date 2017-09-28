@@ -27,7 +27,8 @@ class ImagesDownloader extends HandlerBatchBase {
 
     async onImage(root, index, img) {
         const url = img.url;
-        const filename = `image-${index}${PATH.extname(url)}`;
+        const ext = PATH.extname(url) || '.jpg';
+        const filename = `image-${index}${ext}`;
         const path = PATH.join(root, filename);
 
         const promise = bhttp.get(url, {
@@ -42,10 +43,6 @@ class ImagesDownloader extends HandlerBatchBase {
         });
         img.path = path;
         img.filename = filename;
-    }
-
-    async waitAll() {
-        return Promise.all(this._promises);
     }
 }
 
