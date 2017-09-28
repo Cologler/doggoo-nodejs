@@ -127,8 +127,18 @@ const EpubGenerator = (() => {
         constructor () {
             super();
             this._book = require("epub-builder");
-            this._cover = null;
+            this._cover = 0;
             this._imageIndex = 0;
+        }
+
+        resolveCover(context) {
+            const coverArg = context.args['--cover'] || null;
+            if (coverArg) {
+                const index = Number(coverArg);
+                if (!isNaN(index)) {
+                    this._cover = index;
+                }
+            }
         }
 
         generate(context) {
@@ -140,14 +150,7 @@ const EpubGenerator = (() => {
             book.setAuthor(novel.author || 'AUTHOR');
             book.setSummary(novel.summary || 'SUMMARY');
             book.setUUID(uuid.v4());
-
-            this._cover = context.args['--cover'] || null;
-            if (this._cover) {
-                const ci = Number(this._cover);
-                if (!isNaN(ci)) {
-                    this._cover = ci;
-                }
-            }
+            this.resolveCover(context);
 
             novel.chapters.forEach((z, i) => {
                 const txtEls = z.contents.filter(z => z instanceof model.TextElement);
