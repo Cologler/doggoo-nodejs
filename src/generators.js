@@ -3,9 +3,10 @@
 const PATH = require('path');
 const fs = require('fs');
 const model = require('./model');
+const
 
 class Generator {
-    generate(context, chapters) {
+    generate(context) {
         throw 'not impl.';
     }
 

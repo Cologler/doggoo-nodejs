@@ -3,8 +3,12 @@
 const URL = require('url');
 const model = require('./model');
 const { Novel, Chapter } = model;
+const request = require('async-request');
+const jsdom = require('jsdom');
+const NodeVisitor = require('./core/node-visitor');
 
 class Parser {
+
     get name() { throw Error('not impl.'); }
 
     match(url) { throw Error('not impl.'); }
@@ -12,46 +16,6 @@ class Parser {
     parse(session) { throw Error('not impl.'); }
 
     registerArgs(args) { }
-
-    onNode(context, chapter, node) {
-        const window = context.window;
-        switch (node.nodeType) {
-            case window.Node.TEXT_NODE:
-                const t = context.cc(node.textContent);
-                chapter.addText(t);
-                break;
-
-            case window.Node.ELEMENT_NODE:
-                switch (node.tagName) {
-                    case 'FONT':
-                    case 'STRONG':
-                        node.childNodes.forEach(z => {
-                            this.onNode(context, chapter, z);
-                        });
-                        break;
-
-                    case 'A':
-                        const t = context.cc(node.textContent);
-                        chapter.addLink(node.href, t);
-                        break;
-
-                    case 'BR':
-                        chapter.addLineBreak();
-                        break;
-
-                    case 'IMG':
-                        chapter.addImage(node.getAttribute('file'));
-                        break;
-
-                    default:
-                        throw Error(`unhandled node: $<${node.tagName}>\n${node.innerHTML}`);
-                }
-                break;
-
-            default:
-                throw Error(`unhandled NodeType: $<${node.nodeType}>`);
-        }
-    }
 }
 
 class TiebaParser extends Parser {
@@ -100,11 +64,12 @@ class LightNovelParser extends Parser {
         }
     }
 
-    parseChapter(context, node, index) {
+    parseChapter(context, window, node, index) {
+        const visitor = new NodeVisitor(context);
         const novel = context.novel;
         const chapter = new Chapter();
         node.childNodes.forEach(z => {
-            this.onNode(context, chapter, z);
+            visitor.visit(window, chapter, z);
         });
 
         if (index === 0) {
@@ -116,8 +81,11 @@ class LightNovelParser extends Parser {
         }
     }
 
-    parse(context) {
-        const posters = Array.from(context.window.document.querySelectorAll('#postlist .pct .t_f'));
+    async parse(context) {
+        const body = (await request(context.url)).body;
+        const dom = new jsdom.JSDOM(body);
+        const window = dom.window;
+        const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
         posters.forEach(z => {
             ['style', 'script', '.pstatus', '.quote'].forEach(x => {
                 z.querySelectorAll(x).forEach(c => c.remove());
@@ -125,7 +93,7 @@ class LightNovelParser extends Parser {
         });
         context.novel = new Novel();
         posters.forEach((z, i) => {
-            this.parseChapter(context, z, i);
+            this.parseChapter(context, window, z, i);
         });
     }
 }

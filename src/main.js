@@ -1,20 +1,12 @@
 'use strict';
 
-const request = require('async-request');
-const jsdom = require('jsdom');
 const fs = require('fs');
 const PATH = require('path');
-const { Args, SessionContext } = require('./core');
+const Args = require('./core/args');
+const SessionContext = require('./core/session-context');
 const { parsers } = require('./parser');
 const { getGenerator } = require('./generators.js');
-const { prepareNovel } = require('./pregen');
-
-async function requestData(url) {
-    // TODO: das
-    const response = await request(url);
-    const body = response.body;
-    return body;
-}
+const ImageDownloader = require('./handlers/image-downloader');
 
 function createRoot(output) {
     const root = output || '.';
@@ -63,18 +55,16 @@ async function main() {
         options.args = options.args || {};
     }
 
-    const generator = getGenerator(options.args['--gen']);
-    const body = await requestData(options.url);
-    const dom = new jsdom.JSDOM(body);
     Object.assign(options, {
-        root: createRoot(options.args['--output']),
-        window: dom.window
+        root: createRoot(options.args['--output'])
     });
 
     const session = new SessionContext(options);
+    const generator = getGenerator(options.args['--gen']);
+    session.addHandler(new ImageDownloader());
     process.chdir(session.root);
-    parser.parse(session);
-    await prepareNovel(session);
+    await parser.parse(session);
+    await session.execute();
     generator.generate(session);
 }
 

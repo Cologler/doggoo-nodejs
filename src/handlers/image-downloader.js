@@ -2,20 +2,17 @@
 
 const PATH = require('path');
 const fs = require('fs');
-var bhttp = require("bhttp");
-const { ImageElement } = require('./model');
+const bhttp = require("bhttp");
+const { ImageElement } = require('../model');
+const { HandlerBatchBase } = require('./handler');
 
-class Preproccesser {
-    constructor() {
-        this._promises = [];
-    }
-
-    prepare(context) {
+class ImagesDownloader extends HandlerBatchBase {
+    _handle_core(context) {
         let index = 0;
         for (const chapter of context.novel.chapters) {
             const images = chapter.contents.filter(z => z instanceof ImageElement);
             if (images) {
-                const dir = 'asserts';
+                const dir = 'assets';
                 if (!fs.existsSync(dir)) {
                     fs.mkdirSync(dir);
                 }
@@ -35,7 +32,7 @@ class Preproccesser {
 
         const promise = bhttp.get(url, {
             steam: true,
-            responseTimeout: 5000
+            //responseTimeout: 5000
         });
         this._promises.push(promise);
         const response = await promise;
@@ -52,13 +49,4 @@ class Preproccesser {
     }
 }
 
-async function prepareNovel(context) {
-    const per = new Preproccesser();
-    per.prepare(context);
-    await per.waitAll();
-    console.log(`[INFO] download images completed.`);
-}
-
-module.exports = {
-    prepareNovel
-}
+module.exports = ImagesDownloader;
