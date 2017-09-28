@@ -2,6 +2,7 @@
 
 class ChapterElement {
     constructor(options) {
+        this._options = options;
         Object.keys(options).map(k => {
             Object.defineProperty(this, k, {
                 get: () => options[k]
@@ -12,7 +13,20 @@ class ChapterElement {
 
 class LineBreak extends ChapterElement { }
 
-class TextElement extends ChapterElement { }
+class TextElement extends ChapterElement {
+    constructor(content, options) {
+        super(options);
+        this._content = content;
+    }
+
+    appendText(text) {
+        this._content += text;
+    }
+
+    get content() {
+        return this._content;
+    }
+}
 
 class ImageElement extends ChapterElement { }
 
@@ -32,12 +46,16 @@ class Section {
             return;
         }
         this._textLength += text.length;
-        this._contents.push(new TextElement({
-            content: text,
-            textIndex: this._textIndex,
-            nodeIndex: this._contents.length
-        }));
-        this._textIndex ++;
+        const last = this._contents.length > 0 && this._contents[this._contents.length - 1];
+        if (last && last instanceof TextElement) {
+            last.appendText(text);
+        } else {
+            this._contents.push(new TextElement(text, {
+                textIndex: this._textIndex,
+                nodeIndex: this._contents.length
+            }));
+            this._textIndex ++;
+        }
     }
 
     addLineBreak() {
