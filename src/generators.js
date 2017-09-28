@@ -3,7 +3,8 @@
 const PATH = require('path');
 const fs = require('fs');
 const model = require('./model');
-const
+const ImageDownloader = require('./handlers/image-downloader');
+const OutputGenerator = require('./handlers/output-generator');
 
 class Generator {
     generate(context) {
@@ -41,6 +42,11 @@ class Generator {
 
     onLinkElement(node) {
         throw new Error('NotImplementedError');
+    }
+
+    registerAsHandler(context) {
+        const outputHandler = new OutputGenerator(this);
+        context.addHandler(outputHandler);
     }
 }
 
@@ -180,13 +186,18 @@ const EpubGenerator = (() => {
             const data = xmlescape(node.title);
             return `<a href="${node.url}">${data}</a>`;
         }
+
+        registerAsHandler(context) {
+            context.addHandler(new ImageDownloader());
+            super.registerAsHandler(context);
+        }
     }
 
     return EpubGenerator;
 })();
 
-
-function getGenerator(name) {
+function getGenerator(context) {
+    const name = context.args['--gen'];
     switch (name) {
         case 'markdown':
         case 'md':
@@ -204,6 +215,11 @@ function getGenerator(name) {
     }
 }
 
+function setupGenerator(context) {
+    const generator = getGenerator(context);
+    generator.registerAsHandler(context);
+}
+
 module.exports = {
-    getGenerator
+    setupGenerator
 }

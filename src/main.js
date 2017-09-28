@@ -5,7 +5,7 @@ const PATH = require('path');
 const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
 const { parsers } = require('./parser');
-const { getGenerator } = require('./generators.js');
+const { setupGenerator } = require('./generators.js');
 const ImageDownloader = require('./handlers/image-downloader');
 
 function createRoot(output) {
@@ -60,12 +60,10 @@ async function main() {
     });
 
     const session = new SessionContext(options);
-    const generator = getGenerator(options.args['--gen']);
-    session.addHandler(new ImageDownloader());
+    setupGenerator(session);
     process.chdir(session.root);
     await parser.parse(session);
     await session.execute();
-    generator.generate(session);
 }
 
 (async function() {
