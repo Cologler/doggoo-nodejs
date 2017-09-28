@@ -30,7 +30,7 @@ class TiebaParser extends Parser {
     }
 
     registerArgs(args) {
-        args.registerArgName('--input');
+        args.register('--input');
     }
 }
 

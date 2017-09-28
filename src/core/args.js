@@ -9,7 +9,7 @@ class Args {
         this._argsName.add('--output');
     }
 
-    registerArgName(name) {
+    register(name) {
         this._argsName.add(name);
     }
 
