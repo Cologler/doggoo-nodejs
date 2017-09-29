@@ -5,6 +5,7 @@ const fs = require('fs');
 const model = require('./model');
 const ImageDownloader = require('./handlers/image-downloader');
 const OutputGenerator = require('./handlers/output-generator');
+const app = require('./app');
 
 class Generator {
     generate(context) {
@@ -54,7 +55,8 @@ class TxtGenerator extends Generator {
     generate(context) {
         const novel = context.novel;
         const text = novel.chapters.map(z => this.toDoc(z)).join('\n\n\n\n');
-        const filename = (novel.title || 'novel') + '.txt';
+        const title = novel.titleOrDefault;
+        const filename = `${title}.${app.name}-${app.build}.txt`;
         const path = filename;
         fs.writeFileSync(path, text, {
             encoding: 'utf8',
@@ -144,7 +146,7 @@ const EpubGenerator = (() => {
         generate(context) {
             const novel = context.novel;
             const book = this._book;
-            const title = novel.title || 'NOVEL';
+            const title = novel.titleOrDefault;
 
             book.setTitle(title);
             book.setAuthor(novel.author || 'AUTHOR');
@@ -158,7 +160,7 @@ const EpubGenerator = (() => {
                 const text = this.toDoc(z).trim();
                 book.addChapter(chapterTitle, text);
             });
-            book.createBook(title);
+            book.createBook(`${title}.${app.name}-${app.build}`);
         }
 
         onLineBreak(node) {

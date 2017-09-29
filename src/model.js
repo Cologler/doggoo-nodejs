@@ -9,7 +9,7 @@ const LinkElement = Link;
 
 class Novel {
     constructor() {
-        this._title = '';
+        this._title = null;
         this._chapters = [];
     }
 
@@ -19,6 +19,10 @@ class Novel {
 
     set title(value) {
         this._title = value;
+    }
+
+    get titleOrDefault() {
+        return this._title || 'novel';
     }
 
     add(chapter) {
