@@ -8,15 +8,23 @@ const { parsers } = require('./parser');
 const { setupGenerator } = require('./generators.js');
 
 function createRoot(output) {
-    const root = output || '.';
-    let index = 1;
-    while (true) {
-        const path = PATH.join(root, 'novel-' + index);
+    if (output) {
+        const path = output;
         if (!fs.existsSync(path)) {
             fs.mkdirSync(path);
             return path;
         }
-        index += 1;
+    } else {
+        const root = output || '.';
+        let index = 1;
+        while (true) {
+            const path = PATH.join(root, 'novel-' + index);
+            if (!fs.existsSync(path)) {
+                fs.mkdirSync(path);
+                return path;
+            }
+            index += 1;
+        }
     }
 }
 
