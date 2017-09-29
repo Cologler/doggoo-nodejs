@@ -32,6 +32,10 @@ class NodeVisitor {
     visitElementNode(window, chapter, node) {
         switch (node.tagName) {
             case 'DIV':
+                this.visitInner(window, chapter, node);
+                chapter.addLineBreak();
+                break;
+
             case 'FONT':
             case 'STRONG':
                 this.visitInner(window, chapter, node);
