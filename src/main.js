@@ -6,7 +6,6 @@ const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
 const { parsers } = require('./parser');
 const { setupGenerator } = require('./generators.js');
-const ImageDownloader = require('./handlers/image-downloader');
 
 function createRoot(output) {
     const root = output || '.';
