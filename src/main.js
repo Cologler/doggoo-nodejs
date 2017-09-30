@@ -6,6 +6,7 @@ const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
 const { parsers } = require('./parser');
 const { setupGenerator } = require('./generators.js');
+const app = require('./app');
 
 function createRoot(output) {
     if (output) {
@@ -47,6 +48,11 @@ function getOptions() {
 }
 
 async function main() {
+    if (process.argv.length === 3 && process.argv[2] === '-v') {
+        console.log(`${app.name} (build ${app.build})`);
+        return;
+    }
+
     const options = getOptions();
     const parser = parsers.find(z => z.match(options.url));
     if (!parser) {
