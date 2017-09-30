@@ -1,8 +1,7 @@
 'use strict';
 
 const URL = require('url');
-const model = require('./model');
-const { Novel, Chapter } = model;
+const { Chapter } = require('./models/sections');
 const request = require('async-request');
 const jsdom = require('jsdom');
 const NodeVisitor = require('./core/node-visitor');
@@ -82,7 +81,7 @@ class LightNovelParser extends Parser {
     }
 
     async parse(context) {
-        const body = (await request(context.url)).body;
+        const body = (await request(context.source)).body;
         const dom = new jsdom.JSDOM(body);
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
@@ -91,7 +90,6 @@ class LightNovelParser extends Parser {
                 z.querySelectorAll(x).forEach(c => c.remove());
             });
         });
-        context.novel = new Novel();
         posters.forEach((z, i) => {
             this.parseChapter(context, window, z, i);
         });

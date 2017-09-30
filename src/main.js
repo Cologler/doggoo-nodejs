@@ -43,7 +43,7 @@ function getOptions() {
     }
 
     return options || {
-        url: firstArgs
+        source: firstArgs
     };
 }
 
@@ -54,9 +54,9 @@ async function main() {
     }
 
     const options = getOptions();
-    const parser = parsers.find(z => z.match(options.url));
+    const parser = parsers.find(z => z.match(options.source));
     if (!parser) {
-        throw Error(`Unknown source <${options.url}>.`);
+        throw Error(`Unknown source <${options.source}>.`);
     } else {
         console.log(`Matched parser <${parser.name}>.`);
     }

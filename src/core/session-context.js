@@ -1,6 +1,7 @@
 'use strict';
 
 const opencc = require('node-opencc');
+const { Novel } = require('../model');
 
 class SessionContext {
     constructor(options) {
@@ -22,6 +23,11 @@ class SessionContext {
             //tw2sp: opencc.taiwanToSimplifiedWithPhrases
         }
         this._handlers = [];
+        this._novel = new Novel();
+    }
+
+    get novel() {
+        return this._novel;
     }
 
     cc(text) {
