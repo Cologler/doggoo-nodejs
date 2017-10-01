@@ -6,6 +6,7 @@ const { Chapter } = require('../models/sections');
 const request = require('async-request');
 const jsdom = require('jsdom');
 const NodeVisitor = require('../core/node-visitor');
+const bhttp = require("bhttp");
 
 class LightNovelParser extends HandlerBase {
     get name() {
@@ -50,15 +51,48 @@ class LightNovelParser extends HandlerBase {
     }
 
     async handle(context) {
-        await this.parse(context, null);
+        const promises = [];
+        let url = URL.parse(context.source);
+        const match = url.pathname.match(/^\/thread-(\d+)-1-1.html$/);
+        const threadId = match[1];
+        const response = await bhttp.get(context.source);
+        const dom = new jsdom.JSDOM(response.body.toString());
+        const maxPageIndex = this.parseMaxPageIndex(dom);
+        let last = this.parse(context, dom);
+        const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
+        for (const pg of pgs) {
+            const url = `https://www.lightnovel.cn/thread-${threadId}-${pg}-1.html`;
+            last = this.downloadAndParse(context, url, last);
+        }
+        await last;
     }
 
-    async parse(context, lastPromise) {
-        const body = (await request(context.source)).body;
-        if (lastPromise) {
-            await lastPromise;
+    parseMaxPageIndex(dom) {
+        const window = dom.window;
+        const last = window.document.querySelector('a.last');
+        let href;
+        if (last) {
+            href = last.href;
+        } else {
+            const pgs = Array.from(window.document.querySelectorAll('.pgt .pg a'));
+            if (!pgs[pgs.length - 1].classList.contains('nxt')) {
+                throw Error();
+            }
+            href = pgs[pgs.length - 2].href;
         }
-        const dom = new jsdom.JSDOM(body);
+        let url = URL.parse(href);
+        const match = url.pathname.match(/^\/thread-\d+-(\d+)-1.html$/);
+        return match[1];
+    }
+
+    async downloadAndParse(context, url, lastPromise) {
+        const response = await bhttp.get(url);
+        const dom = new jsdom.JSDOM(response.body.toString());
+        await lastPromise;
+        this.parse(context, dom);
+    }
+
+    parse(context, dom) {
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
         posters.forEach(z => {
@@ -72,8 +106,8 @@ class LightNovelParser extends HandlerBase {
     }
 }
 
-function match(source) {
-    let url = URL.parse(source);
+function match(context) {
+    let url = URL.parse(context.source);
     if (url && url.hostname === 'www.lightnovel.cn') {
         // example: `/thread-901251-1-1.html`
         return /^\/thread-\d+-1-1.html$/.test(url.pathname);

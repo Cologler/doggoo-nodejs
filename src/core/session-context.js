@@ -22,8 +22,18 @@ class SessionContext {
             tw2s : opencc.taiwanToSimplified,
             //tw2sp: opencc.taiwanToSimplifiedWithPhrases
         }
-        this._handlers = [];
-        this._novel = new Novel();
+
+        Object.defineProperties(this, {
+            handlers: {
+                value: []
+            },
+            env: {
+                value: {}
+            },
+            novel: {
+                value: new Novel()
+            }
+        });
     }
 
     get novel() {
@@ -42,11 +52,11 @@ class SessionContext {
     }
 
     addHandler(handler) {
-        this._handlers.push(handler);
+        this.handlers.push(handler);
     }
 
     async execute() {
-        for (const handler of this._handlers) {
+        for (const handler of this.handlers) {
             await handler.handle(this);
         }
     }

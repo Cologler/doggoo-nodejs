@@ -54,12 +54,13 @@ async function main() {
     }
 
     const options = getOptions();
-    const site = sites.find(z => z.match(options.source));
+    const site = sites.find(z => z.match(options));
     if (!site) {
         throw Error(`Unknown source <${options.source}>.`);
     }
 
     const parser = new site.Parser();
+
     console.log(`Matched parser <${parser.name}>.`);
 
     if (process.argv.length > 3) {

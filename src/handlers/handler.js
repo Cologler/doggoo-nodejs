@@ -1,7 +1,13 @@
 'use strict';
 
 class HandlerBase {
-    async handle(context) { throw new Error(); }
+    registerArgs(args) {
+        // ignored
+    }
+
+    async handle(context) {
+        throw new Error();
+    }
 }
 
 class HandlerBatchBase {
