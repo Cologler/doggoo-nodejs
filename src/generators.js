@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('os');
 const PATH = require('path');
 const fs = require('fs');
 const model = require('./model');
@@ -54,7 +55,7 @@ class Generator {
 class TxtGenerator extends Generator {
     generate(context) {
         const novel = context.novel;
-        const text = novel.chapters.map(z => this.toDoc(z)).join('\n\n\n\n');
+        const text = novel.chapters.map(z => this.toDoc(z)).join(os.EOL + os.EOL + os.EOL + os.EOL);
         const title = novel.titleOrDefault;
         const filename = `${title}.${app.name}-${app.build}.txt`;
         const path = filename;
@@ -65,7 +66,7 @@ class TxtGenerator extends Generator {
     }
 
     onLineBreak(node) {
-        return '\n';
+        return os.EOL;
     }
 
     onTextElement(node) {
@@ -101,7 +102,7 @@ class MarkdownGenerator extends Generator {
     }
 
     onLineBreak(node) {
-        return '\n\n';
+        return os.EOL + os.EOL;
     }
 
     onTextElement(node) {
