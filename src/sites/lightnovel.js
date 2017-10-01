@@ -1,46 +1,15 @@
 'use strict';
 
+const { HandlerBase } = require('../handlers/handler');
 const URL = require('url');
-const { Chapter } = require('./models/sections');
+const { Chapter } = require('../models/sections');
 const request = require('async-request');
 const jsdom = require('jsdom');
-const NodeVisitor = require('./core/node-visitor');
+const NodeVisitor = require('../core/node-visitor');
 
-class Parser {
-
-    get name() { throw Error('not impl.'); }
-
-    match(url) { throw Error('not impl.'); }
-
-    parse(session) { throw Error('not impl.'); }
-
-    registerArgs(args) { }
-}
-
-class TiebaParser extends Parser {
-    get name() {
-        return 'Tieba';
-    }
-
-    match(source) {
-        if (source === 'tieba') {
-            return true;
-        }
-    }
-
-    registerArgs(args) {
-        args.register('--input');
-    }
-}
-
-class LightNovelParser extends Parser {
+class LightNovelParser extends HandlerBase {
     get name() {
         return 'LightNovel';
-    }
-
-    match(source) {
-        let url = URL.parse(source);
-        return url && url.hostname === 'www.lightnovel.cn';
     }
 
     parseNovelInfo(novel, lines) {
@@ -80,8 +49,15 @@ class LightNovelParser extends Parser {
         }
     }
 
-    async parse(context) {
+    async handle(context) {
+        await this.parse(context, null);
+    }
+
+    async parse(context, lastPromise) {
         const body = (await request(context.source)).body;
+        if (lastPromise) {
+            await lastPromise;
+        }
         const dom = new jsdom.JSDOM(body);
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
@@ -96,12 +72,16 @@ class LightNovelParser extends Parser {
     }
 }
 
-const parsers = [
-    new LightNovelParser(),
-    new TiebaParser()
-];
-
+function match(source) {
+    let url = URL.parse(source);
+    if (url && url.hostname === 'www.lightnovel.cn') {
+        // example: `/thread-901251-1-1.html`
+        return /^\/thread-\d+-1-1.html$/.test(url.pathname);
+    }
+    return false;
+}
 
 module.exports = {
-    parsers
+    match,
+    Parser: LightNovelParser
 }

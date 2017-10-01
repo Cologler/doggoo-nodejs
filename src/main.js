@@ -4,9 +4,9 @@ const fs = require('fs');
 const PATH = require('path');
 const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
-const { parsers } = require('./parser');
 const { setupGenerator } = require('./generators.js');
 const app = require('./app');
+const sites = require('./sites');
 
 function createRoot(output) {
     if (output) {
@@ -54,12 +54,14 @@ async function main() {
     }
 
     const options = getOptions();
-    const parser = parsers.find(z => z.match(options.source));
-    if (!parser) {
+    const site = sites.find(z => z.match(options.source));
+    if (!site) {
         throw Error(`Unknown source <${options.source}>.`);
-    } else {
-        console.log(`Matched parser <${parser.name}>.`);
     }
+
+    const parser = new site.Parser();
+    console.log(`Matched parser <${parser.name}>.`);
+
     if (process.argv.length > 3) {
         const args = new Args();
         parser.registerArgs(args);
@@ -73,9 +75,9 @@ async function main() {
     });
 
     const session = new SessionContext(options);
-    setupGenerator(session);
     process.chdir(session.root);
-    await parser.parse(session);
+    session.addHandler(parser);
+    setupGenerator(session);
     await session.execute();
 }
 
