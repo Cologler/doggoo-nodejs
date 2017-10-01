@@ -7,6 +7,29 @@ const jsdom = require('jsdom');
 const NodeVisitor = require('../core/node-visitor');
 const bhttp = require("bhttp");
 
+class LightNovelNodeVisitor extends NodeVisitor {
+    visitElementNode(window, chapter, node) {
+        switch (node.tagName) {
+            case 'IMG':
+                let url = node.getAttribute('file');
+                if (url === null) {
+                    url = node.src;
+                }
+                url = this.absUrl(window, url);
+                chapter.addImage(url);
+                break;
+
+            case 'IGNORE_JS_OP':
+                this.visitInner(window, chapter, node);
+                break;
+
+            default:
+                super.visitElementNode(window, chapter, node);
+                break;
+        }
+    }
+}
+
 class LightNovelParser extends HandlerBase {
     constructor() {
         super();
@@ -15,6 +38,10 @@ class LightNovelParser extends HandlerBase {
 
     get name() {
         return 'LightNovel';
+    }
+
+    registerArgs(args) {
+        args.register('--cookie');
     }
 
     parseNovelInfo(novel, lines) {
@@ -40,7 +67,7 @@ class LightNovelParser extends HandlerBase {
     parseChapter(context, window, node) {
         this._parseChapterIndex++;
 
-        const visitor = new NodeVisitor(context);
+        const visitor = new LightNovelNodeVisitor(context);
         const novel = context.novel;
         const chapter = new Chapter();
         node.childNodes.forEach(z => {
@@ -56,12 +83,27 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
+    initSession(context) {
+        const headers = {};
+        if (context.args['--cookie']) {
+            headers.cookie = context.args['--cookie'];
+            console.log('[INFO] init session with cookie.')
+        } else {
+            console.log('[INFO] init session without cookie.')
+        }
+        context.http = bhttp.session({
+            headers,
+            cookieJar: false
+        });
+    }
+
     async handle(context) {
+        this.initSession(context);
         let url = URL.parse(context.source);
         const match = url.pathname.match(/^\/thread-(\d+)-1-1.html$/);
         const threadId = match[1];
-        const response = await bhttp.get(context.source);
-        const dom = new jsdom.JSDOM(response.body.toString());
+        const response = await context.http.get(context.source);
+        const dom = this.asDom(url, response.body.toString());
         const maxPageIndex = this.parseMaxPageIndex(dom);
         let last = this.parse(context, dom);
         const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
@@ -69,7 +111,18 @@ class LightNovelParser extends HandlerBase {
             const url = `https://www.lightnovel.cn/thread-${threadId}-${pg}-1.html`;
             last = this.downloadAndParse(context, url, last);
         }
-        await last;
+        if (last) {
+            await last;
+        }
+    }
+
+    asDom(url, body) {
+        const dom = new jsdom.JSDOM(body);
+        const u = URL.parse(url);
+        dom.window['raw-protocol'] = u.protocol;
+        dom.window['raw-host'] = u.host;
+        dom.window['raw-href'] = url;
+        return dom;
     }
 
     parseMaxPageIndex(dom) {
@@ -91,9 +144,11 @@ class LightNovelParser extends HandlerBase {
     }
 
     async downloadAndParse(context, url, lastPromise) {
-        const response = await bhttp.get(url);
-        const dom = new jsdom.JSDOM(response.body.toString());
-        await lastPromise;
+        const response = await context.http.get(url);
+        const dom = this.asDom(url, response.body.toString());
+        if (lastPromise) {
+            await lastPromise;
+        }
         this.parse(context, dom);
     }
 
@@ -101,7 +156,7 @@ class LightNovelParser extends HandlerBase {
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
         posters.forEach(z => {
-            ['style', 'script', '.pstatus', '.quote'].forEach(x => {
+            ['style', 'script', '.pstatus', '.quote', '.tip'].forEach(x => {
                 z.querySelectorAll(x).forEach(c => c.remove());
             });
         });

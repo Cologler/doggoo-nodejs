@@ -10,20 +10,6 @@ class HandlerBase {
     }
 }
 
-class HandlerBatchBase {
-    constructor() {
-        this._promises = [];
-    }
-
-    handle(context) {
-        this._handle_core(context);
-        return Promise.all(this._promises);
-    }
-
-    _handle_core(context) { throw new Error(); }
-}
-
 module.exports = {
-    HandlerBase,
-    HandlerBatchBase
+    HandlerBase
 };

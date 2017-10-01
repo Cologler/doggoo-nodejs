@@ -4,9 +4,25 @@ const PATH = require('path');
 const fs = require('fs');
 const bhttp = require("bhttp");
 const { ImageElement } = require('../model');
-const { HandlerBatchBase } = require('./handler');
+const { HandlerBase } = require('./handler');
 
-class ImagesDownloader extends HandlerBatchBase {
+class ImagesDownloader extends HandlerBase {
+    constructor() {
+        super();
+        this._promises = [];
+        this._exts = new Set();
+        this._exts.add('.jpg');
+        this._exts.add('.jpeg');
+        this._exts.add('.png');
+        this._exts.add('.bmp');
+    }
+
+    async handle(context) {
+        this._handle_core(context);
+        await Promise.all(this._promises);
+        console.log(`[INFO] download images finished.`);
+    }
+
     _handle_core(context) {
         let index = 0;
         for (const chapter of context.novel.chapters) {
@@ -27,7 +43,10 @@ class ImagesDownloader extends HandlerBatchBase {
 
     async onImage(root, index, img) {
         const url = img.url;
-        const ext = PATH.extname(url) || '.jpg';
+        let ext = (PATH.extname(url) || '.jpg').toLowerCase();
+        if (!this._exts.has(ext)) {
+            ext = '.jpg';
+        }
         const filename = `image-${index}${ext}`;
         const path = PATH.join(root, filename);
 

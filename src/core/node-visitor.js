@@ -5,6 +5,16 @@ class NodeVisitor {
         this._context = context;
     }
 
+    absUrl(window, url) {
+        if (!/^https?:\/\//.test(url)) {
+            if (!url.startsWith('/')) {
+                url = '/' + url;
+            }
+            url = `${window['raw-protocol']}//${window['raw-host']}${url}`;
+        }
+        return url;
+    }
+
     visit(window, chapter, node) {
         switch (node.nodeType) {
             case window.Node.TEXT_NODE:
@@ -36,6 +46,7 @@ class NodeVisitor {
                 chapter.addLineBreak();
                 break;
 
+            case 'P':
             case 'FONT':
             case 'STRONG':
                 this.visitInner(window, chapter, node);
@@ -51,7 +62,7 @@ class NodeVisitor {
                 break;
 
             case 'IMG':
-                chapter.addImage(node.getAttribute('file'));
+                chapter.addImage(node.src);
                 break;
 
             default:
