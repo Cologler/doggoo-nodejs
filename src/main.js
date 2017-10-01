@@ -4,7 +4,7 @@ const fs = require('fs');
 const PATH = require('path');
 const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
-const { setupGenerator } = require('./generators');
+const { useGenerator } = require('./generators');
 const app = require('./app');
 const sites = require('./sites');
 
@@ -78,7 +78,7 @@ async function main() {
     const session = new SessionContext(options);
     process.chdir(session.root);
     session.addHandler(parser);
-    setupGenerator(session);
+    useGenerator(session);
     await session.execute();
 }
 

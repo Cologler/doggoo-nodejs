@@ -23,11 +23,11 @@ function findGenerator(context) {
     }
 }
 
-function setupGenerator(context) {
+function useGenerator(context) {
     const generator = findGenerator(context);
     generator.registerAsHandler(context);
 }
 
 module.exports = {
-    setupGenerator
+    useGenerator
 }
