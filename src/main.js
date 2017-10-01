@@ -4,7 +4,7 @@ const fs = require('fs');
 const PATH = require('path');
 const Args = require('./core/args');
 const SessionContext = require('./core/session-context');
-const { setupGenerator } = require('./generators.js');
+const { setupGenerator } = require('./generators');
 const app = require('./app');
 const sites = require('./sites');
 
