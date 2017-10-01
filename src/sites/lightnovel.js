@@ -3,12 +3,16 @@
 const { HandlerBase } = require('../handlers/handler');
 const URL = require('url');
 const { Chapter } = require('../models/sections');
-const request = require('async-request');
 const jsdom = require('jsdom');
 const NodeVisitor = require('../core/node-visitor');
 const bhttp = require("bhttp");
 
 class LightNovelParser extends HandlerBase {
+    constructor() {
+        super();
+        this._parseChapterIndex = 0;
+    }
+
     get name() {
         return 'LightNovel';
     }
@@ -33,7 +37,9 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    parseChapter(context, window, node, index) {
+    parseChapter(context, window, node) {
+        this._parseChapterIndex++;
+
         const visitor = new NodeVisitor(context);
         const novel = context.novel;
         const chapter = new Chapter();
@@ -41,7 +47,7 @@ class LightNovelParser extends HandlerBase {
             visitor.visit(window, chapter, z);
         });
 
-        if (index === 0) {
+        if (this._parseChapterIndex === 1) {
             this.parseNovelInfo(novel, chapter.textContents);
         }
 
@@ -51,7 +57,6 @@ class LightNovelParser extends HandlerBase {
     }
 
     async handle(context) {
-        const promises = [];
         let url = URL.parse(context.source);
         const match = url.pathname.match(/^\/thread-(\d+)-1-1.html$/);
         const threadId = match[1];
@@ -100,8 +105,8 @@ class LightNovelParser extends HandlerBase {
                 z.querySelectorAll(x).forEach(c => c.remove());
             });
         });
-        posters.forEach((z, i) => {
-            this.parseChapter(context, window, z, i);
+        posters.forEach(z => {
+            this.parseChapter(context, window, z);
         });
     }
 }
