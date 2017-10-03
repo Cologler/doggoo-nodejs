@@ -128,19 +128,25 @@ class LightNovelParser extends HandlerBase {
     parseMaxPageIndex(dom) {
         const window = dom.window;
         const last = window.document.querySelector('a.last');
-        let href;
+        let href = null;
         if (last) {
             href = last.href;
         } else {
             const pgs = Array.from(window.document.querySelectorAll('.pgt .pg a'));
-            if (!pgs[pgs.length - 1].classList.contains('nxt')) {
-                throw Error();
+            if (pgs.length > 0) {
+                if (!pgs[pgs.length - 1].classList.contains('nxt')) {
+                    throw Error();
+                }
+                href = pgs[pgs.length - 2].href;
             }
-            href = pgs[pgs.length - 2].href;
         }
-        let url = URL.parse(href);
-        const match = url.pathname.match(/^\/thread-\d+-(\d+)-1.html$/);
-        return match[1];
+        if (href) {
+            let url = URL.parse(href);
+            const match = url.pathname.match(/^\/thread-\d+-(\d+)-1.html$/);
+            return match[1];
+        } else {
+            return 1;
+        }
     }
 
     async downloadAndParse(context, url, lastPromise) {
