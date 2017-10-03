@@ -6,6 +6,22 @@ Just download the novel.
 
 **GPLv3**.
 
+## How To Compile
+
+For compile, you need to install `pkg`.
+
+``` cmd
+npm i -g pkg
+```
+
+then run the command:
+
+``` cmd
+npm run compile
+```
+
+You should found the binary executable file in `dist-bin` directory.
+
 ## How To Use
 
 open cmd.exe, try input:
