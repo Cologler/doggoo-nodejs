@@ -7,11 +7,12 @@ const app = require('../app');
 const { Generator } = require('./base');
 const model = require('../model');
 const ImageDownloader = require('../handlers/image-downloader');
+const { EpubBuilder } = require("epub-builder");
 
 class EpubGenerator extends Generator {
     constructor () {
         super();
-        this._book = require("epub-builder");
+        this._book = new EpubBuilder();
         this._cover = 0;
         this._imageIndex = 0;
     }
@@ -31,10 +32,10 @@ class EpubGenerator extends Generator {
         const book = this._book;
         const title = novel.titleOrDefault;
 
-        book.setTitle(title);
-        book.setAuthor(novel.author || 'AUTHOR');
-        book.setSummary(novel.summary || 'SUMMARY');
-        book.setUUID(uuid.v4());
+        book.title = title;
+        book.author = novel.author || 'AUTHOR';
+        book.summary = novel.summary || 'SUMMARY';
+        book.UUID = uuid.v4();
         this.resolveCover(context);
 
         novel.chapters.forEach((z, i) => {

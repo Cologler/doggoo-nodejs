@@ -6,7 +6,7 @@
   "dependencies": {
     "async-request": "^1.2.0",
     "bhttp": "^1.2.4",
-    "epub-builder": "^1.2.5",
+    "epub-builder": "git+https://github.com/Cologler/epub-builder.git",
     "jsdom": "^11.2.0",
     "node-opencc": "^2.0.1",
     "node-uuid": "^1.4.8",
@@ -15,7 +15,9 @@
   "devDependencies": {
     "@types/node-uuid": "0.0.28"
   },
-  "scripts": { },
+  "scripts": {
+    "compile": "pkg src/main.js -t node8-win -o dist-bin/doggoo"
+  },
   "author": "cologler",
   "license": "GPLv3"
 }
