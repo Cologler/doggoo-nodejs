@@ -104,12 +104,14 @@ class LightNovelParser extends HandlerBase {
         const threadId = match[1];
         const response = await context.http.get(context.source);
         const dom = this.asDom(url, response.body.toString());
-        const maxPageIndex = this.parseMaxPageIndex(dom);
         let last = this.parse(context, dom);
-        const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
-        for (const pg of pgs) {
-            const url = `https://www.lightnovel.cn/thread-${threadId}-${pg}-1.html`;
-            last = this.downloadAndParse(context, url, last);
+        const maxPageIndex = this.parseMaxPageIndex(dom);
+        if (maxPageIndex > 1) {
+            const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
+            for (const pg of pgs) {
+                const url = `https://www.lightnovel.cn/thread-${threadId}-${pg}-1.html`;
+                last = this.downloadAndParse(context, url, last);
+            }
         }
         if (last) {
             await last;
