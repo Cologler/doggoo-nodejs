@@ -47,10 +47,22 @@ function getOptions() {
     };
 }
 
+const subCmdMap = {
+    '-v': () => {
+        console.log(`${app.name} (build ${app.build})`);
+    },
+    '-h': () => {
+        console.log(`doggoo URL --`);
+    }
+};
+
 async function main() {
     if (process.argv.length === 3 && process.argv[2] === '-v') {
-        console.log(`${app.name} (build ${app.build})`);
-        return;
+        const sc = subCmdMap[process.argv[2]];
+        if (sc) {
+            sc();
+            return;
+        }
     }
 
     const options = getOptions();
