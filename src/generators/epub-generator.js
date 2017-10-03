@@ -67,7 +67,7 @@ class EpubGenerator extends Generator {
         }
 
         this._imageIndex++;
-        return `<img src="${node.filename}"/>`;
+        return `<div style="page-break-after:always;"><img src="${node.filename}"/></div>`;
     }
 
     onLinkElement(node) {
