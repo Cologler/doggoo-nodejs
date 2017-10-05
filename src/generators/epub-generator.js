@@ -7,7 +7,7 @@ const app = require('../app');
 const { Generator } = require('./base');
 const model = require('../model');
 const ImageDownloader = require('../handlers/image-downloader');
-const { EpubBuilder } = require("epub-builder");
+const { EpubBuilder } = require('epub-builder/dist/builder.js');
 
 class EpubGenerator extends Generator {
     constructor () {
@@ -68,7 +68,7 @@ class EpubGenerator extends Generator {
         }
 
         this._imageIndex++;
-        return `<div style="page-break-after:always;"><img src="${node.filename}"/></div>`;
+        return `<div style="page-break-after:always;"><img src="${node.filename}" alt="${node.url}"/></div>`;
     }
 
     onLinkElement(node) {
