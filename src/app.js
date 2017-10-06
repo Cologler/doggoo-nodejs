@@ -2,5 +2,5 @@
 
 module.exports = {
     name: 'doggoo',
-    build: '6'
+    build: '7'
 }

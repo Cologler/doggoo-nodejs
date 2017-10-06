@@ -7,7 +7,7 @@
     "async-request": "^1.2.0",
     "bhttp": "^1.2.4",
     "epub-builder": "git+https://github.com/Cologler/epub-builder.git",
-    "jsdom": "^11.2.0",
+    "jsdom": "^11.3.0",
     "node-opencc": "^2.0.1",
     "node-uuid": "^1.4.8",
     "xml-escape": "^1.1.0"
