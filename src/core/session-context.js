@@ -46,6 +46,10 @@ class SessionContext {
             let func = this._ccc[c];
             if (func) {
                 return func(text);
+            } else {
+                const cmds = Object.keys(this._ccc).join('\n');
+                const msg = `Unknown cc options. Available are: \n${cmds}`;
+                throw new Error(msg);
             }
         }
         return text;

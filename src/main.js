@@ -57,7 +57,7 @@ const subCmdMap = {
 };
 
 async function main() {
-    if (process.argv.length === 3 && process.argv[2] === '-v') {
+    if (process.argv.length === 3) {
         const sc = subCmdMap[process.argv[2]];
         if (sc) {
             sc();

@@ -49,6 +49,7 @@ class NodeVisitor {
             case 'P':
             case 'FONT':
             case 'STRONG':
+            case 'STRIKE':
                 this.visitInner(window, chapter, node);
                 break;
 

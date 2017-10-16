@@ -70,9 +70,15 @@ class LightNovelParser extends HandlerBase {
         const visitor = new LightNovelNodeVisitor(context);
         const novel = context.novel;
         const chapter = new Chapter();
-        node.childNodes.forEach(z => {
-            visitor.visit(window, chapter, z);
-        });
+        try {
+            node.childNodes.forEach(z => {
+                visitor.visit(window, chapter, z);
+            });
+        } catch (error) {
+            const href = window['raw-href'];
+            console.log(`error on ${href}`);
+            throw error;
+        }
 
         if (this._parseChapterIndex === 1) {
             this.parseNovelInfo(novel, chapter.textContents);
