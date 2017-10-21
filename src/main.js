@@ -73,7 +73,7 @@ async function main() {
 
     const parser = new site.Parser();
 
-    console.log(`Matched parser <${parser.name}>.`);
+    console.log(`[INFO] Matched parser <${parser.name}>.`);
 
     if (process.argv.length > 3) {
         const args = new Args();
@@ -84,14 +84,17 @@ async function main() {
     }
 
     Object.assign(options, {
-        root: createRoot(options.args['--output'])
+        root: createRoot(options.args.output)
     });
+    console.log(`[INFO] Creating book on ${options.root} ...`);
 
     const session = new SessionContext(options);
     process.chdir(session.root);
     session.addHandler(parser);
     useGenerator(session);
     await session.execute();
+
+    console.log(`[INFO] Done.`);
 }
 
 (async function() {

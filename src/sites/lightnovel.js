@@ -30,10 +30,42 @@ class LightNovelNodeVisitor extends NodeVisitor {
     }
 }
 
+
+function parseFloor(text) {
+    text = text.trim();
+    const match = text.match(/^(\d+)楼$/);
+    if (!match) throw Error(text);
+    return Number(match[1]);
+}
+
+
+class Range {
+    constructor(min, max) {
+        this._min = min;
+        this._max = max;
+    }
+
+    in(value) {
+        if (typeof this._min === 'number') {
+            if (value < this._min) {
+                return false;
+            }
+        }
+        if (typeof this._max === 'number') {
+            if (value > this._max) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+
 class LightNovelParser extends HandlerBase {
     constructor() {
         super();
         this._parseChapterIndex = 0;
+        this._floor = null; // [min, max]
     }
 
     get name() {
@@ -41,7 +73,8 @@ class LightNovelParser extends HandlerBase {
     }
 
     registerArgs(args) {
-        args.register('--cookie');
+        args.registerOption('cookie');
+        args.registerOption('floor');
     }
 
     parseNovelInfo(novel, lines) {
@@ -90,9 +123,20 @@ class LightNovelParser extends HandlerBase {
     }
 
     initSession(context) {
+        const floor = context.args.floor;
+        if (floor) {
+            let match = floor.match(/^(\d+)-(\d+)?$/);
+            if (!match || (match[1] || match[2]) === undefined) {
+                throw Error(`${floor} is invalid floor args. try input like '1-15'`);
+            }
+            console.assert(match.length === 3);
+            this._floor = new Range(match[1] ? Number(match[1]) : null, match[2] ? Number(match[2]) : null);
+        }
+
         const headers = {};
-        if (context.args['--cookie']) {
-            headers.cookie = context.args['--cookie'];
+        const cookie = context.args.cookie;
+        if (cookie) {
+            headers.cookie = cookie;
             console.log('[INFO] init session with cookie.')
         } else {
             console.log('[INFO] init session without cookie.')
@@ -168,14 +212,21 @@ class LightNovelParser extends HandlerBase {
 
     parse(context, dom) {
         const window = dom.window;
-        const posters = Array.from(window.document.querySelectorAll('#postlist .pct .t_f'));
+        const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posters.forEach(z => {
+            if (this._floor) {
+                const posterId = z.id.substr(3);
+                const floorText = z.querySelector(`#postnum${posterId}`).textContent;
+                const floor = parseFloor(floorText);
+                if (!this._floor.in(floor)) {
+                    return;
+                }
+            }
+            const content = z.querySelector('.pct .t_f');
             ['style', 'script', '.pstatus', '.quote', '.tip'].forEach(x => {
-                z.querySelectorAll(x).forEach(c => c.remove());
+                content.querySelectorAll(x).forEach(c => c.remove());
             });
-        });
-        posters.forEach(z => {
-            this.parseChapter(context, window, z);
+            this.parseChapter(context, window, content);
         });
     }
 }

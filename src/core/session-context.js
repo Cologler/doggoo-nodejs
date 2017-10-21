@@ -41,7 +41,7 @@ class SessionContext {
     }
 
     cc(text) {
-        let c = this.args['--cc'];
+        let c = this.args.cc;
         if (c) {
             let func = this._ccc[c];
             if (func) {
