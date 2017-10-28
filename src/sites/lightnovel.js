@@ -1,11 +1,14 @@
 'use strict';
 
-const { HandlerBase } = require('../handlers/handler');
+const assert = require('assert');
 const URL = require('url');
-const { Chapter } = require('../models/sections');
+
 const jsdom = require('jsdom');
-const NodeVisitor = require('../core/node-visitor');
 const bhttp = require("bhttp");
+
+const { HandlerBase } = require('../handlers/handler');
+const { Chapter } = require('../models/sections');
+const NodeVisitor = require('../core/node-visitor');
 
 class LightNovelNodeVisitor extends NodeVisitor {
     visitElementNode(window, chapter, node) {
@@ -40,9 +43,28 @@ function parseFloor(text) {
 
 
 class Range {
-    constructor(min, max) {
+    constructor() {
+        let min = null;
+        let max = null;
+        if (arguments.length === 1) {
+            const source = arguments[0];
+            assert.strictEqual(typeof source, 'string');
+            const match = source.match(/^(\d+)-(\d+)?$/);
+            if (!match || (match[1] || match[2]) === undefined) {
+                throw Error(`${source} is invalid range args. try input like '1-15'`);
+            }
+            assert.strictEqual(match.length, 3);
+            min = match[1] ? Number(match[1]) : null;
+            max = match[2] ? Number(match[2]) : null;
+        } else if (arguments.length === 2) {
+            min = arguments[0];
+            max = arguments[1];
+            assert.strictEqual(typeof min, 'number');
+            assert.strictEqual(typeof min, 'number');
+        }
         this._min = min;
         this._max = max;
+        console.log(`[INFO] configured range [${min}, ${max}].`);
     }
 
     in(value) {
@@ -65,7 +87,7 @@ class LightNovelParser extends HandlerBase {
     constructor() {
         super();
         this._parseChapterIndex = 0;
-        this._floor = null; // [min, max]
+        this._floor = null;
     }
 
     get name() {
@@ -125,12 +147,7 @@ class LightNovelParser extends HandlerBase {
     initSession(context) {
         const floor = context.args.floor;
         if (floor) {
-            let match = floor.match(/^(\d+)-(\d+)?$/);
-            if (!match || (match[1] || match[2]) === undefined) {
-                throw Error(`${floor} is invalid floor args. try input like '1-15'`);
-            }
-            console.assert(match.length === 3);
-            this._floor = new Range(match[1] ? Number(match[1]) : null, match[2] ? Number(match[2]) : null);
+            this._floor = new Range(floor);
         }
 
         const headers = {};
