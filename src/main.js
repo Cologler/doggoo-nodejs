@@ -7,6 +7,7 @@ const SessionContext = require('./core/session-context');
 const { useGenerator } = require('./generators');
 const app = require('./app');
 const sites = require('./sites');
+const { MessageError } = require('./err');
 
 function createRoot(output) {
     if (output) {
@@ -33,7 +34,7 @@ function getOptions() {
     let argv = process.argv;
 
     if (argv.length < 3) {
-        throw Error('Require source (maybe a url).');
+        throw new MessageError('Require source (maybe a url).');
     }
 
     let options = null;
@@ -101,6 +102,10 @@ async function main() {
     try {
         await main();
     } catch (error) {
-        console.error(error);
+        if (error instanceof MessageError) {
+            console.error(`[ERROR] ${error.message}`);
+        } else {
+            console.error(error);
+        }
     }
 })();

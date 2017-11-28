@@ -16,7 +16,7 @@
     "@types/node-uuid": "0.0.28"
   },
   "scripts": {
-    "compile": "pkg src/main.js -t node8-win -o dist-bin/doggoo"
+    "compile": "pkg src/main.js -t node9-win -o dist-bin/doggoo"
   },
   "author": "cologler",
   "license": "GPLv3"

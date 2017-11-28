@@ -33,7 +33,8 @@ class ImagesDownloader extends HandlerBase {
                     fs.mkdirSync(dir);
                 }
                 for (const img of images) {
-                    this.onImage(dir, index, img);
+                    const promise = this.onImage(dir, index, img);
+                    this._promises.push(promise);
                     index++;
                 }
             }
@@ -54,7 +55,6 @@ class ImagesDownloader extends HandlerBase {
             steam: true,
             //responseTimeout: 5000
         });
-        this._promises.push(promise);
         const response = await promise;
         fs.writeFileSync(path, response.body, {
             encoding: 'binary',
