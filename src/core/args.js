@@ -11,12 +11,9 @@ class Args {
         this._argsOptions.add('output');
     }
 
-    registerFlag(name) {
-        this._argsFlags.add(name);
-    }
-
-    registerOption(name) {
-        this._argsOptions.add(name);
+    fromHandler(handler) {
+        handler.options.forEach(z => this._argsOptions.add(z));
+        handler.flags.forEach(z => this._argsFlags.add(z));
     }
 
     parseArgs(args) {

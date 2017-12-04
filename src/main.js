@@ -78,7 +78,7 @@ async function main() {
 
     if (process.argv.length > 3) {
         const args = new Args();
-        parser.registerArgs(args);
+        args.fromHandler(parser);
         options.args = args.parseArgs(process.argv.slice(3));
     } else {
         options.args = options.args || {};

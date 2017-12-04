@@ -88,15 +88,11 @@ class LightNovelParser extends HandlerBase {
         super();
         this._parseChapterIndex = 0;
         this._floor = null;
+        this._options.push('cookie', 'floor');
     }
 
     get name() {
         return 'LightNovel';
-    }
-
-    registerArgs(args) {
-        args.registerOption('cookie');
-        args.registerOption('floor');
     }
 
     parseNovelInfo(novel, lines) {
