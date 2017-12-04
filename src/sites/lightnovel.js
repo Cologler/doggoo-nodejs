@@ -1,33 +1,33 @@
 'use strict';
 
-const assert = require('assert');
 const URL = require('url');
 
 const jsdom = require('jsdom');
 const bhttp = require("bhttp");
 
+const { Range } = require('../utils/range');
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
-const NodeVisitor = require('../core/node-visitor');
+const { WindowContext, NodeVisitor } = require('../core/node-visitor');
 
 class LightNovelNodeVisitor extends NodeVisitor {
-    visitElementNode(window, chapter, node) {
-        switch (node.tagName) {
+    visitElementNode(context) {
+        switch (context.node.tagName) {
             case 'IMG':
-                let url = node.getAttribute('file');
+                let url = context.node.getAttribute('file');
                 if (url === null) {
-                    url = node.src;
+                    url = context.node.src;
                 }
-                url = this.absUrl(window, url);
-                chapter.addImage(url);
+                url = this.absUrl(context.window, url);
+                context.chapter.addImage(url);
                 break;
 
             case 'IGNORE_JS_OP':
-                this.visitInner(window, chapter, node);
+                this.visitInner(context);
                 break;
 
             default:
-                super.visitElementNode(window, chapter, node);
+                super.visitElementNode(context);
                 break;
         }
     }
@@ -40,48 +40,6 @@ function parseFloor(text) {
     if (!match) throw Error(text);
     return Number(match[1]);
 }
-
-
-class Range {
-    constructor() {
-        let min = null;
-        let max = null;
-        if (arguments.length === 1) {
-            const source = arguments[0];
-            assert.strictEqual(typeof source, 'string');
-            const match = source.match(/^(\d+)-(\d+)?$/);
-            if (!match || (match[1] || match[2]) === undefined) {
-                throw Error(`${source} is invalid range args. try input like '1-15'`);
-            }
-            assert.strictEqual(match.length, 3);
-            min = match[1] ? Number(match[1]) : null;
-            max = match[2] ? Number(match[2]) : null;
-        } else if (arguments.length === 2) {
-            min = arguments[0];
-            max = arguments[1];
-            assert.strictEqual(typeof min, 'number');
-            assert.strictEqual(typeof min, 'number');
-        }
-        this._min = min;
-        this._max = max;
-        console.log(`[INFO] configured range [${min}, ${max}].`);
-    }
-
-    in(value) {
-        if (typeof this._min === 'number') {
-            if (value < this._min) {
-                return false;
-            }
-        }
-        if (typeof this._max === 'number') {
-            if (value > this._max) {
-                return false;
-            }
-        }
-        return true;
-    }
-}
-
 
 class LightNovelParser extends HandlerBase {
     constructor() {
@@ -115,15 +73,16 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    parseChapter(context, window, node) {
+    parseChapter(session, window, node) {
         this._parseChapterIndex++;
 
-        const visitor = new LightNovelNodeVisitor(context);
-        const novel = context.novel;
+        const visitor = new LightNovelNodeVisitor(session);
         const chapter = new Chapter();
+        const windowContext = new WindowContext(window, chapter);
+        const novel = session.novel;
         try {
             node.childNodes.forEach(z => {
-                visitor.visit(window, chapter, z);
+                visitor.visit(windowContext.createChildNode(z));
             });
         } catch (error) {
             const href = window['raw-href'];

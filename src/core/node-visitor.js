@@ -1,5 +1,22 @@
 'use strict';
 
+class WindowContext {
+    constructor(window, chapter) {
+        Object.defineProperties(this, {
+            window: { get: () => window },
+            chapter: { get: () => chapter }
+        });
+    }
+
+    createChildNode(node) {
+        const context = new WindowContext(this.window, this.chapter);
+        Object.defineProperties(context, {
+            node: { get: () => node },
+        });
+        return context;
+    }
+}
+
 class NodeVisitor {
     constructor(context) {
         this._context = context;
@@ -15,67 +32,71 @@ class NodeVisitor {
         return url;
     }
 
-    visit(window, chapter, node) {
-        switch (node.nodeType) {
+    visit(context) {
+        const window = context.window;
+        switch (context.node.nodeType) {
             case window.Node.TEXT_NODE:
-                this.visitTextNode(window, chapter, node);
+                this.visitTextNode(context);
                 break;
 
             case window.Node.ELEMENT_NODE:
-                this.visitElementNode(window, chapter, node);
+                this.visitElementNode(context);
                 break;
 
             default:
-                throw Error(`unhandled NodeType: <${node.nodeType}>`);
+                throw Error(`unhandled NodeType: <${context.node.nodeType}>`);
         }
     }
 
-    visitTextNode(window, chapter, node) {
-        const t = this._context.cc(node.textContent);
-        switch (node.parentNode.tagName) {
+    visitTextNode(context) {
+        const t = this._context.cc(context.node.textContent);
+        switch (context.node.parentNode.tagName) {
             default:
-                chapter.addText(t);
+                context.chapter.addText(t);
                 break;
         }
     }
 
-    visitElementNode(window, chapter, node) {
-        switch (node.tagName) {
+    visitElementNode(context) {
+        switch (context.node.tagName) {
             case 'DIV':
-                this.visitInner(window, chapter, node);
-                chapter.addLineBreak();
+                this.visitInner(context);
+                context.chapter.addLineBreak();
                 break;
 
             case 'P':
             case 'FONT':
             case 'STRONG':
             case 'STRIKE':
-                this.visitInner(window, chapter, node);
+                this.visitInner(context);
                 break;
 
             case 'A':
-                const t = this._context.cc(node.textContent);
-                chapter.addLink(node.href, t);
+                const t = this._context.cc(context.node.textContent);
+                context.chapter.addLink(context.node.href, t);
                 break;
 
             case 'BR':
-                chapter.addLineBreak();
+                context.chapter.addLineBreak();
                 break;
 
             case 'IMG':
-                chapter.addImage(node.src);
+                context.chapter.addImage(context.node.src);
                 break;
 
             default:
-                throw Error(`unhandled node: <${node.tagName}>\n${node.innerHTML}`);
+                throw Error(`unhandled node: <${context.node.tagName}>\n${context.node.innerHTML}`);
         }
     }
 
-    visitInner(window, chapter, node) {
-        node.childNodes.forEach(z => {
-            this.visit(window, chapter, z);
+    visitInner(context) {
+        context.node.childNodes.forEach(z => {
+            this.visit(context.window, context.chapter, context.createChildNode(z));
         });
     }
 }
 
-module.exports = NodeVisitor;
+module.exports = {
+    WindowContext,
+    NodeVisitor
+}
