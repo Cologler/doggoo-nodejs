@@ -1,6 +1,6 @@
 'use strict';
 
-class WindowContext {
+class ChapterContext {
     constructor(window, chapter) {
         Object.defineProperties(this, {
             window: { get: () => window },
@@ -9,7 +9,7 @@ class WindowContext {
     }
 
     createChildNode(node) {
-        const context = new WindowContext(this.window, this.chapter);
+        const context = new ChapterContext(this.window, this.chapter);
         Object.defineProperties(context, {
             node: { get: () => node },
         });
@@ -91,12 +91,12 @@ class NodeVisitor {
 
     visitInner(context) {
         context.node.childNodes.forEach(z => {
-            this.visit(context.window, context.chapter, context.createChildNode(z));
+            this.visit(context.createChildNode(z));
         });
     }
 }
 
 module.exports = {
-    WindowContext,
+    ChapterContext,
     NodeVisitor
 }

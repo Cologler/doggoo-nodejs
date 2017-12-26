@@ -41,6 +41,20 @@ class Range {
         }
         return true;
     }
+
+    toString() {
+        if (typeof this._min === 'number') {
+            if (typeof this._max === 'number') {
+                return `[${this._min}, ${this._max}]`;
+            } else {
+                return `[${this._min}...]`;
+            }
+        } else if (typeof this._max === 'number') {
+            return `[...${this._max}]`;
+        } else {
+            return `[None]`;
+        }
+    }
 }
 
 module.exports = {
