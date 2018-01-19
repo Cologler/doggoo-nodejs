@@ -9,6 +9,7 @@ const { Range } = require('../utils/range');
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
+const { MessageError } = require('../err');
 
 function match(context) {
     let url = URL.parse(context.source);
@@ -120,7 +121,7 @@ class LightNovelParser extends HandlerBase {
         {
             for (const line of lines) {
                 if (/作者/.test(line)) {
-                    const match = line.match(/作者[：:]?\s*(\W+)\s*$/);
+                    const match = line.match(/作者[：:]\s*(\W+)\s*$/);
                     if (match) {
                         novel.author = match[1];
                     }
@@ -176,6 +177,13 @@ class LightNovelParser extends HandlerBase {
         });
     }
 
+    checkDom(dom) {
+        const messagetext = dom.window.document.querySelector('#messagetext');
+        if (messagetext) {
+            throw new MessageError(messagetext.textContent);
+        }
+    }
+
     async handle(session) {
         this.initSession(session);
         const wnurl = getWellknownUrl(session);
@@ -184,6 +192,7 @@ class LightNovelParser extends HandlerBase {
         const threadId = match[1];
         const response = await session.http.get(wnurl);
         const dom = this.asDom(url, response.body.toString());
+        this.checkDom(dom);
         dom.getMaxPageIndex = getMaxPageIndex;
         let last = this.parse(session, dom);
         const maxPageIndex = dom.getMaxPageIndex();
