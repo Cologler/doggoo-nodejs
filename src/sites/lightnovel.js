@@ -160,7 +160,6 @@ class LightNovelParser extends HandlerBase {
         const floor = session.args.floor;
         if (floor) {
             this._floor = new Range(floor);
-            console.log(`[INFO] configured range ${this._floor.toString()}.`);
         }
 
         const headers = {};
