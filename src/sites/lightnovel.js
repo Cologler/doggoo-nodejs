@@ -229,6 +229,7 @@ class LightNovelParser extends HandlerBase {
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posters.forEach(z => {
+            const posterId = z.id;
             if (this._floor) {
                 const posterId = z.id.substr(3);
                 const floorText = z.querySelector(`#postnum${posterId}`).textContent;
@@ -238,6 +239,11 @@ class LightNovelParser extends HandlerBase {
                 }
             }
             const content = z.querySelector('.pct .t_f');
+            if (content === null) {
+                // maybe: 作者被禁止或删除 内容自动屏蔽
+                console.info(`[INFO] poster ${posterId} (page) has not content.`);
+                return;
+            }
             ['style', 'script', '.pstatus', '.quote', '.tip'].forEach(x => {
                 content.querySelectorAll(x).forEach(c => c.remove());
             });
