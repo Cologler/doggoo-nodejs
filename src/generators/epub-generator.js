@@ -30,7 +30,7 @@ class EpubGenerator extends Generator {
     generate(context) {
         const novel = context.novel;
         const book = this._book;
-        const title = novel.titleOrDefault;
+        let title = novel.titleOrDefault;
 
         book.title = title;
         book.author = novel.author || 'AUTHOR';
@@ -44,6 +44,9 @@ class EpubGenerator extends Generator {
             const text = this.toDoc(z).trim();
             book.addChapter(chapterTitle, text);
         });
+        if (title.length >= 30) {
+            title = 'book';
+        }
         book.createBook(`${title}.${app.name}-${app.build}`);
     }
 
