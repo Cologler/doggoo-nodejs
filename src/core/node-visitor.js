@@ -68,6 +68,7 @@ class NodeVisitor {
             case 'FONT':
             case 'STRONG':
             case 'STRIKE':
+            case 'I':
                 this.visitInner(context);
                 break;
 
