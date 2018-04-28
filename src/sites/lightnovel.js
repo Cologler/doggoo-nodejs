@@ -5,14 +5,15 @@ const URL = require('url');
 const jsdom = require('jsdom');
 const bhttp = require("bhttp");
 
+const { appopt } = require('../options');
 const { Range } = require('../utils/range');
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
 const { MessageError } = require('../err');
 
-function match(context) {
-    let url = URL.parse(context.source);
+function match() {
+    let url = URL.parse(appopt().source);
     if (url && url.hostname === 'www.lightnovel.cn') {
         // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
         if ('/forum.php' === url.pathname) {
@@ -28,8 +29,8 @@ function match(context) {
     return false;
 }
 
-function getWellknownUrl(context) {
-    let url = URL.parse(context.source);
+function getWellknownUrl() {
+    let url = URL.parse(appopt().source);
     if (url && url.hostname === 'www.lightnovel.cn') {
         // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
         if ('/forum.php' === url.pathname) {
@@ -37,7 +38,7 @@ function getWellknownUrl(context) {
             return `https://www.lightnovel.cn/thread-${query.get('tid')}-1-1.html`;
         }
     }
-    return context.source;
+    return appopt().source;
 }
 
 class LightNovelNodeVisitor extends NodeVisitor {
@@ -102,8 +103,7 @@ class LightNovelParser extends HandlerBase {
     constructor() {
         super();
         this._parseChapterIndex = 0;
-        this._floor = null;
-        this._options.push('cookie', 'floor');
+        this._range = null;
     }
 
     get name() {
@@ -157,13 +157,13 @@ class LightNovelParser extends HandlerBase {
     }
 
     initSession(session) {
-        const floor = session.args.floor;
-        if (floor) {
-            this._floor = new Range(floor);
+        const range = session.appopt.range;
+        if (range) {
+            this._range = new Range(range);
         }
 
         const headers = {};
-        const cookie = session.args.cookie;
+        const cookie = session.appopt.cookie;
         if (cookie) {
             headers.cookie = cookie;
             console.log('[INFO] init session with cookie.')
@@ -230,11 +230,11 @@ class LightNovelParser extends HandlerBase {
         const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posters.forEach(z => {
             const posterId = z.id;
-            if (this._floor) {
+            if (this._range) {
                 const posterId = z.id.substr(3);
-                const floorText = z.querySelector(`#postnum${posterId}`).textContent;
-                const floor = parseFloor(floorText);
-                if (!this._floor.in(floor)) {
+                const rangeText = z.querySelector(`#postnum${posterId}`).textContent;
+                const floor = parseFloor(rangeText);
+                if (!this._range.in(floor)) {
                     return;
                 }
             }

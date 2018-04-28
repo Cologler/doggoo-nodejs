@@ -5,7 +5,7 @@ const TxtGenerator = require('./txt-generator');
 const EpubGenerator = require('./epub-generator');
 
 function findGenerator(context) {
-    const name = context.args.gen;
+    const name = context.appopt.format;
     switch (name) {
         case 'markdown':
         case 'md':

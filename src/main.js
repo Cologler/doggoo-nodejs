@@ -2,12 +2,14 @@
 
 const fs = require('fs');
 const PATH = require('path');
-const Args = require('./core/args');
+
+const { appopt } = require('./options');
 const SessionContext = require('./core/session-context');
 const { useGenerator } = require('./generators');
 const app = require('./app');
 const sites = require('./sites');
 const { MessageError } = require('./err');
+const x = require('./options');
 
 function createRoot(output) {
     if (output) {
@@ -48,24 +50,7 @@ function getOptions() {
     };
 }
 
-const subCmdMap = {
-    '-v': () => {
-        console.log(`${app.name} (build ${app.build})`);
-    },
-    '-h': () => {
-        console.log(`doggoo URL --`);
-    }
-};
-
 async function main() {
-    if (process.argv.length === 3) {
-        const sc = subCmdMap[process.argv[2]];
-        if (sc) {
-            sc();
-            return;
-        }
-    }
-
     const options = getOptions();
     const site = sites.find(z => z.match(options));
     if (!site) {
@@ -76,21 +61,11 @@ async function main() {
 
     console.log(`[INFO] Matched parser <${parser.name}>.`);
 
-    if (process.argv.length > 3) {
-        const args = new Args();
-        args.fromHandler(parser);
-        options.args = args.parseArgs(process.argv.slice(3));
-    } else {
-        options.args = options.args || {};
-    }
-
-    Object.assign(options, {
-        root: createRoot(options.args.output)
-    });
-    console.log(`[INFO] Creating book on ${options.root} ...`);
+    const rootDir = createRoot(appopt().output);
+    console.log(`[INFO] Creating book on ${rootDir} ...`);
 
     const session = new SessionContext(options);
-    process.chdir(session.root);
+    process.chdir(rootDir);
     session.addHandler(parser);
     useGenerator(session);
     await session.execute();

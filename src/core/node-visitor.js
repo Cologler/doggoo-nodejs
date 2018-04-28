@@ -72,6 +72,13 @@ class NodeVisitor {
                 this.visitInner(context);
                 break;
 
+            case 'TABLE':
+            case 'TBODY':
+            case 'TR':
+            case 'TD':
+                this.visitInner(context);
+                break;
+
             case 'A':
                 const t = this._context.cc(context.node.textContent);
                 context.chapter.addLink(context.node.href, t);

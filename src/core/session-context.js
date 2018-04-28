@@ -1,16 +1,28 @@
 'use strict';
 
 const opencc = require('node-opencc');
+
+const { appopt } = require('../options');
 const { Novel } = require('../model');
 
 class SessionContext {
-    constructor(options) {
-        Object.keys(options).map(k => {
-            Object.defineProperty(this, k, {
-                get: () => options[k]
-            })
+    constructor() {
+        Object.defineProperties(this, {
+            handlers: {
+                value: []
+            },
+            env: {
+                value: {}
+            },
+            novel: {
+                value: new Novel()
+            },
+            appopt: {
+                value: appopt()
+            }
         });
-        this._ccc = {
+
+        const ccMap = {
             hk2s : opencc.hongKongToSimplified,
             s2hk : opencc.simplifiedToHongKong,
             s2t  : opencc.simplifiedToTraditional,
@@ -21,19 +33,22 @@ class SessionContext {
             t2tw : opencc.traditionalToTaiwan,
             tw2s : opencc.taiwanToSimplified,
             //tw2sp: opencc.taiwanToSimplifiedWithPhrases
-        }
+        };
 
-        Object.defineProperties(this, {
-            handlers: {
-                value: []
-            },
-            env: {
-                value: {}
-            },
-            novel: {
-                value: new Novel()
+        this._ccfunc = null;
+        const ccopt = appopt().cc;
+        if (ccopt) {
+            let func = ccMap[appopt().cc];
+            if (func) {
+                this._ccfunc = func;
+            } else {
+                const cmds = Object.keys(ccMap).join('\n');
+                const msg = `Unknown cc options. Available are: \n${cmds}`;
+                throw new Error(msg);
             }
-        });
+        } else {
+            this._ccfunc = text => text;
+        }
     }
 
     get novel() {
@@ -41,18 +56,7 @@ class SessionContext {
     }
 
     cc(text) {
-        let c = this.args.cc;
-        if (c) {
-            let func = this._ccc[c];
-            if (func) {
-                return func(text);
-            } else {
-                const cmds = Object.keys(this._ccc).join('\n');
-                const msg = `Unknown cc options. Available are: \n${cmds}`;
-                throw new Error(msg);
-            }
-        }
-        return text;
+        return this._ccfunc(text);
     }
 
     addHandler(handler) {

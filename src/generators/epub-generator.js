@@ -4,6 +4,7 @@ const uuid = require('node-uuid');
 const xmlescape = require('xml-escape');
 
 const app = require('../app');
+const { appopt } = require('../options');
 const { Generator } = require('./base');
 const model = require('../model');
 const ImageDownloader = require('../handlers/image-downloader');
@@ -15,12 +16,14 @@ class EpubGenerator extends Generator {
         this._book = new EpubBuilder();
         this._cover = 0;
         this._imageIndex = 0;
+
+        this._hasImages = !appopt().noImages;
     }
 
     resolveCover(context) {
-        const coverArg = context.args.cover;
-        if (coverArg) {
-            const index = Number(coverArg);
+        const coverIndex = context.appopt.coverIndex;
+        if (coverIndex) {
+            const index = Number(coverIndex);
             if (!isNaN(index)) {
                 this._cover = index;
             }
@@ -64,14 +67,20 @@ class EpubGenerator extends Generator {
     }
 
     onImageElement(node) {
-        if (this._imageIndex === this._cover || node.url === this._cover) {
-            this._book.addCoverImage(node.path);
-        } else {
-            this._book.addAsset(node.path);
+        let image = '';
+
+        if (this._hasImages) {
+            if (this._imageIndex === this._cover || node.url === this._cover) {
+                this._book.addCoverImage(node.path);
+            } else {
+                this._book.addAsset(node.path);
+            }
+
+            this._imageIndex++;
+            image = `<img src="${node.filename}" alt="${node.filename}"/>`;
         }
 
-        this._imageIndex++;
-        return `<div style="page-break-after:always;"><img src="${node.filename}" alt="${node.filename}"/></div>`;
+        return `<div style="page-break-after:always;">${image}</div>`;
     }
 
     onLinkElement(node) {
@@ -80,7 +89,9 @@ class EpubGenerator extends Generator {
     }
 
     registerAsHandler(context) {
-        context.addHandler(new ImageDownloader());
+        if (this._hasImages) {
+            context.addHandler(new ImageDownloader());
+        }
         super.registerAsHandler(context);
     }
 }
