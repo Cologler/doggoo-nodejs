@@ -32,29 +32,10 @@ function createRoot(output) {
     }
 }
 
-function getOptions() {
-    let argv = process.argv;
-
-    if (argv.length < 3) {
-        throw new MessageError('Require source (maybe a url).');
-    }
-
-    let options = null;
-    const firstArgs = argv[2];
-    if (argv.length === 3 && fs.existsSync(firstArgs)) {
-        options = JSON.parse(fs.readFileSync(firstArgs));
-    }
-
-    return options || {
-        source: firstArgs
-    };
-}
-
 async function main() {
-    const options = getOptions();
-    const site = sites.find(z => z.match(options));
+    const site = sites.find(z => z.match());
     if (!site) {
-        throw Error(`Unknown source <${options.source}>.`);
+        throw Error(`Unknown source <${appopt().source}>.`);
     }
 
     const parser = new site.Parser();
@@ -64,7 +45,7 @@ async function main() {
     const rootDir = createRoot(appopt().output);
     console.log(`[INFO] Creating book on ${rootDir} ...`);
 
-    const session = new SessionContext(options);
+    const session = new SessionContext();
     process.chdir(rootDir);
     session.addHandler(parser);
     useGenerator(session);
