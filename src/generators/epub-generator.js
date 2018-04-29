@@ -62,22 +62,28 @@ class EpubGenerator extends Generator {
         if (node.textIndex === 0) {
             return `<h1>${data}</h1>`;
         } else {
-            return `<p>${xmlescape(node.content)}</p>`;
+            return `<p>${data}</p>`;
         }
     }
 
     onImageElement(node) {
-        let image = '';
-
         if (this._hasImages) {
             if (this._imageIndex === this._cover || node.url === this._cover) {
                 this._book.addCoverImage(node.path);
             } else {
                 this._book.addAsset(node.path);
             }
+        }
 
-            this._imageIndex++;
+        this._imageIndex++;
+        let image = '';
+
+        if (this._hasImages) {
             image = `<img src="${node.filename}" alt="${node.filename}"/>`;
+        } else {
+            const pholder = `<image ${node.url}>`;
+            const data = xmlescape(pholder);
+            image = `<p>${data}</p>`;
         }
 
         return `<div style="page-break-after:always;">${image}</div>`;

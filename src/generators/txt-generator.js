@@ -30,7 +30,7 @@ class TxtGenerator extends Generator {
     }
 
     onImageElement(node) {
-        return `<此处为插图 ${node.url}>`;
+        return `<image ${node.url}>`;
     }
 
     onLinkElement(node) {
