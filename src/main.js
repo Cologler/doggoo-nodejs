@@ -6,10 +6,8 @@ const PATH = require('path');
 const { appopt } = require('./options');
 const SessionContext = require('./core/session-context');
 const { useGenerator } = require('./generators');
-const app = require('./app');
 const sites = require('./sites');
 const { MessageError } = require('./err');
-const x = require('./options');
 
 function createRoot(output) {
     if (output) {

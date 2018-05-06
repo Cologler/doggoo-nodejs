@@ -51,6 +51,10 @@ class NodeVisitor {
     visitTextNode(context) {
         const t = this._context.cc(context.node.textContent);
         switch (context.node.parentNode.tagName) {
+            case 'A':
+                context.chapter.addLink(context.node.parentNode.href, t);
+                break;
+
             default:
                 context.chapter.addText(t);
                 break;
@@ -62,6 +66,10 @@ class NodeVisitor {
             case 'DIV':
                 this.visitInner(context);
                 context.chapter.addLineBreak();
+                break;
+
+            case 'A':
+                this.visitInner(context);
                 break;
 
             case 'P':
@@ -77,11 +85,6 @@ class NodeVisitor {
             case 'TR':
             case 'TD':
                 this.visitInner(context);
-                break;
-
-            case 'A':
-                const t = this._context.cc(context.node.textContent);
-                context.chapter.addLink(context.node.href, t);
                 break;
 
             case 'BR':
