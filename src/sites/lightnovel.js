@@ -238,15 +238,26 @@ class LightNovelParser extends HandlerBase {
                     return;
                 }
             }
+
             const content = z.querySelector('.pct .t_f');
             if (content === null) {
                 // maybe: 作者被禁止或删除 内容自动屏蔽
                 console.info(`[INFO] poster ${posterId} (page) has not content.`);
                 return;
             }
-            ['style', 'script', '.pstatus', '.quote', '.tip'].forEach(x => {
+
+            for (const query of [
+                '.quote' // chapter cannot be a reply.
+            ]) {
+                if (content.querySelector(query)) {
+                    return;
+                }
+            }
+
+            ['style', 'script', '.pstatus', '.tip'].forEach(x => {
                 content.querySelectorAll(x).forEach(c => c.remove());
             });
+
             this.parseChapter(session, window, content);
         });
     }
