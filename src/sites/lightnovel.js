@@ -151,9 +151,7 @@ class LightNovelParser extends HandlerBase {
             this.parseNovelInfo(novel, chapter.textContents);
         }
 
-        if (chapter.textLength > 100) {
-            novel.add(chapter);
-        }
+        novel.add(chapter);
     }
 
     initSession(session) {
