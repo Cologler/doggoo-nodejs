@@ -25,7 +25,6 @@ class Range {
         }
         this._min = min;
         this._max = max;
-        console.log(`[INFO] configured range [${min}, ${max}].`);
     }
 
     in(value) {

@@ -6,7 +6,6 @@ const { ioc } = require('@adonisjs/fold');
 const jsdom = require('jsdom');
 const bhttp = require("bhttp");
 
-const { Range } = require('../utils/range');
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
@@ -192,6 +191,7 @@ class LightNovelParser extends HandlerBase {
         this._parseChapterIndex = 0;
         this._range = null;
         this._url = null;
+        this._options = ioc.use('options');
     }
 
     get name() {
@@ -239,17 +239,16 @@ class LightNovelParser extends HandlerBase {
             this.parseNovelInfo(novel, chapter.textContents);
         }
 
-        novel.add(chapter);
+        if (chapter.textLength > this._options.limitChars) {
+            novel.add(chapter);
+        }
     }
 
     initSession(session) {
         const options = ioc.use('options');
         this._url = LightNovelUrl.parse(options.source);
 
-        const range = session.appopt.range;
-        if (range) {
-            this._range = new Range(range);
-        }
+        this._range = session.appopt.range;
 
         const headers = {};
         const cookie = session.appopt.cookie;

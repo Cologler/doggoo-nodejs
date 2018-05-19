@@ -5,8 +5,8 @@ const PATH = require('path');
 
 const { ioc } = require('@adonisjs/fold');
 
-require('./options');
 require('./app');
+require('./options');
 require('./handlers/image-downloader');
 
 const SessionContext = require('./core/session-context');

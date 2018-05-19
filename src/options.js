@@ -3,7 +3,7 @@
 const { docopt } = require('docopt');
 const { ioc } = require('@adonisjs/fold');
 
-const app = require('./app');
+const { Range } = require('./utils/range');
 
 const doc = `
 Generate e-book from website.
@@ -21,17 +21,44 @@ Options:
     --cc=<>             # Set the chinese converter.
     --cover-index=<>    # Set the cover index in all images.
     --no-images         # Do not download images.
+    --limit-chars=<>          # Set ignore if char count less than the value.
 `;
+
+const appinfo = ioc.use('app-info');
 
 const options = docopt(doc, {
     argv: process.argv.slice(2),
     help: true,
-    version: `${app.name} (build ${app.build})`,
+    version: `${appinfo.name} (build ${appinfo.build})`,
     options_first: false,
     exit: true
 });
 
 class ApplicationOptions {
+    constructor() {
+        // range
+        const range = options['--range'];
+        if (range) {
+            this._range = new Range(range);
+            console.log(`[INFO] configured range ${this._range.toString()}.`);
+        } else {
+            this._range = null;
+        }
+
+        // --limit-chars
+        this._limitChars = options['--limit-chars'];
+        if (this._limitChars !== null) {
+            if (!/\d+/.test(this._limitChars)) {
+                console.log('<limit-chars> must be a number.');
+                process.exit(1);
+            }
+            this._limitChars = Number(this._limitChars);
+            console.log(`[INFO] configured limit-chars ${this._limitChars}.`);
+        } else {
+            this._limitChars = 0;
+        }
+    }
+
     get source() {
         return options['URL'];
     }
@@ -49,7 +76,7 @@ class ApplicationOptions {
     }
 
     get range() {
-        return options['--range'];
+        return this._range;
     }
 
     get cc() {
@@ -66,6 +93,10 @@ class ApplicationOptions {
 
     hasFlag(name) {
         return options[name] === true;
+    }
+
+    get limitChars() {
+        return this._limitChars;
     }
 }
 
