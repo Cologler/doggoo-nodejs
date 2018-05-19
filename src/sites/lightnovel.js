@@ -2,10 +2,10 @@
 
 const URL = require('url');
 
+const { ioc } = require('@adonisjs/fold');
 const jsdom = require('jsdom');
 const bhttp = require("bhttp");
 
-const { appopt } = require('../options');
 const { Range } = require('../utils/range');
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
@@ -13,7 +13,8 @@ const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
 const { MessageError } = require('../err');
 
 function match() {
-    let url = URL.parse(appopt().source);
+    const options = ioc.use('options');
+    let url = URL.parse(options.source);
     if (url && url.hostname === 'www.lightnovel.cn') {
         // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
         if ('/forum.php' === url.pathname) {
@@ -30,7 +31,8 @@ function match() {
 }
 
 function getWellknownUrl() {
-    let url = URL.parse(appopt().source);
+    const options = ioc.use('options');
+    let url = URL.parse(options.source);
     if (url && url.hostname === 'www.lightnovel.cn') {
         // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
         if ('/forum.php' === url.pathname) {
@@ -38,7 +40,7 @@ function getWellknownUrl() {
             return `https://www.lightnovel.cn/thread-${query.get('tid')}-1-1.html`;
         }
     }
-    return appopt().source;
+    return options.source;
 }
 
 class LightNovelNodeVisitor extends NodeVisitor {

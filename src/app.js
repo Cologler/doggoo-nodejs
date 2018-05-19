@@ -1,6 +1,10 @@
 'use strict';
 
-module.exports = {
-    name: 'doggoo',
-    build: '12'
-};
+const { ioc } = require('@adonisjs/fold');
+
+ioc.singleton('app-info', () => {
+    return {
+        name: 'doggoo',
+        build: '12'
+    };
+});

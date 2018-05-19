@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
-    "@aedart/js-ioc": "^1.2.2",
+    "@adonisjs/fold": "^4.0.8",
     "async-request": "^1.2.0",
     "bhttp": "^1.2.4",
     "docopt": "^0.6.2",

@@ -1,6 +1,7 @@
 'use strict';
 
 const { docopt } = require('docopt');
+const { ioc } = require('@adonisjs/fold');
 
 const app = require('./app');
 
@@ -68,10 +69,6 @@ class ApplicationOptions {
     }
 }
 
-function appopt() {
+ioc.singleton('options', () =>{
     return new ApplicationOptions();
-}
-
-module.exports = {
-    appopt
-};
+});

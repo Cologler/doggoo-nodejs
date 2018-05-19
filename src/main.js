@@ -3,7 +3,11 @@
 const fs = require('fs');
 const PATH = require('path');
 
-const { appopt } = require('./options');
+const { ioc } = require('@adonisjs/fold');
+
+require('./options');
+require('./app');
+
 const SessionContext = require('./core/session-context');
 const { useGenerator } = require('./generators');
 const sites = require('./sites');
@@ -31,16 +35,18 @@ function createRoot(output) {
 }
 
 async function main() {
+    const options = ioc.use('options');
+
     const site = sites.find(z => z.match());
     if (!site) {
-        throw Error(`Unknown source <${appopt().source}>.`);
+        throw Error(`Unknown source <${options.source}>.`);
     }
 
     const parser = new site.Parser();
 
     console.log(`[INFO] Matched parser <${parser.name}>.`);
 
-    const rootDir = createRoot(appopt().output);
+    const rootDir = createRoot(options.output);
     console.log(`[INFO] Creating book on ${rootDir} ...`);
 
     const session = new SessionContext();

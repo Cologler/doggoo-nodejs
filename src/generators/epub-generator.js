@@ -1,10 +1,9 @@
 'use strict';
 
+const { ioc } = require('@adonisjs/fold');
 const uuid = require('node-uuid');
 const xmlescape = require('xml-escape');
 
-const app = require('../app');
-const { appopt } = require('../options');
 const { Generator } = require('./base');
 const model = require('../model');
 const ImageDownloader = require('../handlers/image-downloader');
@@ -17,7 +16,7 @@ class EpubGenerator extends Generator {
         this._cover = 0;
         this._imageIndex = 0;
 
-        this._hasImages = !appopt().noImages;
+        this._hasImages = !ioc.use('options').noImages;
     }
 
     resolveCover(context) {
@@ -50,7 +49,8 @@ class EpubGenerator extends Generator {
         if (title.length >= 30) {
             title = 'book';
         }
-        book.createBook(`${title}.${app.name}-${app.build}`);
+        const appinfo = ioc.use('app-info');
+        book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
     }
 
     onLineBreak(node) {

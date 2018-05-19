@@ -3,17 +3,22 @@
 const os = require('os');
 const fs = require('fs');
 
-const app = require('../app');
+const { ioc } = require('@adonisjs/fold');
+
 const { Generator } = require('./base');
 
 class TxtGenerator extends Generator {
     generate(context) {
         const novel = context.novel;
+
         let text = context.getGenerateMessage('txt');
         text += os.EOL + os.EOL;
         text += novel.chapters.map(z => this.toDoc(z)).join(os.EOL + os.EOL + os.EOL + os.EOL);
         const title = novel.titleOrDefault;
-        const filename = `${title}.${app.name}-${app.build}.txt`;
+
+        const appinfo = ioc.use('app-info');
+        const filename = `${title}.${appinfo.name}-${appinfo.build}.txt`;
+
         const path = filename;
         fs.writeFileSync(path, text, {
             encoding: 'utf8',
