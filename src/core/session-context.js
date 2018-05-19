@@ -3,7 +3,6 @@
 const { ioc } = require('@adonisjs/fold');
 const opencc = require('node-opencc');
 
-const app = require('../app');
 const { Novel } = require('../model');
 
 class SessionContext {

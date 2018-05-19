@@ -6,7 +6,6 @@ const xmlescape = require('xml-escape');
 
 const { Generator } = require('./base');
 const model = require('../model');
-const ImageDownloader = require('../handlers/image-downloader');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 
 class EpubGenerator extends Generator {
@@ -17,6 +16,7 @@ class EpubGenerator extends Generator {
         this._imageIndex = 0;
 
         this._hasImages = !ioc.use('options').noImages;
+        this._downloader = ioc.use('image-downloader');
     }
 
     resolveCover(context) {
@@ -67,11 +67,13 @@ class EpubGenerator extends Generator {
     }
 
     onImageElement(node) {
+        const fileinfo = this._downloader.getFileInfo(node.url);
+
         if (this._hasImages) {
             if (this._imageIndex === this._cover || node.url === this._cover) {
-                this._book.addCoverImage(node.path);
+                this._book.addCoverImage(fileinfo.path);
             } else {
-                this._book.addAsset(node.path);
+                this._book.addAsset(fileinfo.path);
             }
         }
 
@@ -79,7 +81,7 @@ class EpubGenerator extends Generator {
         let image = '';
 
         if (this._hasImages) {
-            image = `<img src="${node.filename}" alt="${node.filename}"/>`;
+            image = `<img src="${fileinfo.filename}" alt="${fileinfo.filename}"/>`;
         } else {
             const pholder = `<image ${node.url}>`;
             const data = xmlescape(pholder);
@@ -96,7 +98,7 @@ class EpubGenerator extends Generator {
 
     registerAsHandler(context) {
         if (this._hasImages) {
-            context.addHandler(new ImageDownloader());
+            context.addHandler(ioc.use('image-downloader'));
         }
         super.registerAsHandler(context);
     }

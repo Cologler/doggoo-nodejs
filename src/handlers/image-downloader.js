@@ -2,7 +2,10 @@
 
 const PATH = require('path');
 const fs = require('fs');
+
+const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
+
 const { ImageElement } = require('../model');
 const { HandlerBase } = require('./handler');
 
@@ -65,8 +68,6 @@ class ImagesDownloader extends HandlerBase {
             encoding: 'binary',
             flag: 'w'
         });
-        img.path = path;
-        img.filename = filename;
     }
 
     getFileInfo(url) {
@@ -74,4 +75,6 @@ class ImagesDownloader extends HandlerBase {
     }
 }
 
-module.exports = ImagesDownloader;
+ioc.singleton('image-downloader', () => {
+    return new ImagesDownloader();
+});
