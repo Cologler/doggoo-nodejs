@@ -6,15 +6,15 @@ const bhttp = require("bhttp");
 const { ImageElement } = require('../model');
 const { HandlerBase } = require('./handler');
 
+const IMAGE_EXT = new Set([
+    '.jpg', '.jpeg', '.png', '.bmp', '.gif'
+]);
+
 class ImagesDownloader extends HandlerBase {
     constructor() {
         super();
         this._promises = [];
-        this._exts = new Set();
-        this._exts.add('.jpg');
-        this._exts.add('.jpeg');
-        this._exts.add('.png');
-        this._exts.add('.bmp');
+        this._results = {}; // map as <url:object>
     }
 
     async handle(context) {
@@ -45,11 +45,16 @@ class ImagesDownloader extends HandlerBase {
     async onImage(root, index, img) {
         const url = img.url;
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
-        if (!this._exts.has(ext)) {
+        if (!IMAGE_EXT.has(ext)) {
             ext = '.jpg';
         }
         const filename = `image-${index}${ext}`;
         const path = PATH.join(root, filename);
+
+        this._results[url] = {
+            filename,
+            path,
+        };
 
         const promise = bhttp.get(url, {
             steam: true,
@@ -62,6 +67,10 @@ class ImagesDownloader extends HandlerBase {
         });
         img.path = path;
         img.filename = filename;
+    }
+
+    getFileInfo(url) {
+        return this._results[url];
     }
 }
 

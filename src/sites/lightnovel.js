@@ -164,9 +164,9 @@ class LightNovelParser extends HandlerBase {
         const cookie = session.appopt.cookie;
         if (cookie) {
             headers.cookie = cookie;
-            console.log('[INFO] init session with cookie.')
+            console.log('[INFO] init session with cookie.');
         } else {
-            console.log('[INFO] init session without cookie.')
+            console.log('[INFO] init session without cookie.');
         }
         session.http = bhttp.session({
             headers,
@@ -257,4 +257,4 @@ class LightNovelParser extends HandlerBase {
 module.exports = {
     match,
     Parser: LightNovelParser
-}
+};
