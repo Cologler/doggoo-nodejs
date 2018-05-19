@@ -14,6 +14,7 @@ class EpubGenerator extends Generator {
         this._book = new EpubBuilder();
         this._cover = 0;
         this._imageIndex = 0;
+        this._chapterIndex = 0;
 
         this._hasImages = !ioc.use('options').noImages;
         this._downloader = ioc.use('image-downloader');
@@ -41,6 +42,7 @@ class EpubGenerator extends Generator {
         this.resolveCover(context);
 
         novel.chapters.forEach((z, i) => {
+            this._chapterIndex ++;
             const txtEls = z.contents.filter(z => z instanceof model.TextElement);
             const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
             const text = this.toDoc(z).trim();
@@ -59,8 +61,13 @@ class EpubGenerator extends Generator {
 
     onTextElement(node) {
         const data = xmlescape(node.content);
+
         if (node.textIndex === 0) {
-            return `<h1>${data}</h1>`;
+            if (this._chapterIndex === 1) {
+                return `<h1>${data}</h1>`;
+            } else {
+                return `<h2>${data}</h2>`;
+            }
         } else {
             return `<p>${data}</p>`;
         }
