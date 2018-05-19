@@ -30,4 +30,4 @@ function useGenerator(context) {
 
 module.exports = {
     useGenerator
-}
+};

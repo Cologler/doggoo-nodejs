@@ -66,6 +66,94 @@ class LightNovelNodeVisitor extends NodeVisitor {
     }
 }
 
+class LightNovelUrl {
+    constructor(url) {
+        this._url = url;
+    }
+
+    get value() {
+        return this._url.href;
+    }
+
+    get ThreadId() { throw new Error(); }
+
+    get PageIndex() { throw new Error(); }
+
+    changePageIndex(newPageIndex) { throw new Error(); }
+
+    /**
+     *
+     *
+     * @static
+     * @param {string} urlString
+     * @memberof LightNovelUrl
+     */
+    static parse(urlString) {
+        let url = URL.parse(urlString);
+        if (url.pathname === '/forum.php') {
+            return new PhpLightNovelUrl(url);
+        } else {
+            return new UniLightNovelUrl(url);
+        }
+    }
+}
+
+/**
+ * url format like `https://www.lightnovel.cn/thread-924341-1-1.html`.
+ *
+ * @class UniLightNovelUrl
+ * @extends {IUrlBuilder}
+ */
+class UniLightNovelUrl extends LightNovelUrl {
+    constructor(url) {
+        super(url);
+
+        const match = url.pathname.match(/^\/thread-(\d+)-(\d+)-1.html$/);
+        if (match === null) {
+            throw Error(`unknown url path <${url.pathname}>`);
+        }
+
+        this._threadId = match[1];
+        this._pageIndex = match[2];
+    }
+
+    get ThreadId() { return this._threadId; }
+
+    get PageIndex() { return this._pageIndex; }
+
+    changePageIndex(newPageIndex) {
+        return `https://www.lightnovel.cn/thread-${this._threadId}-${newPageIndex}-1.html`;
+    }
+}
+
+/**
+ * url format like `https://www.lightnovel.cn/forum.php?mod=viewthread&tid=924341&extra=&authorid=989041&page=4`.
+ *
+ * @class PhpLightNovelUrl
+ * @extends {IUrlBuilder}
+ */
+class PhpLightNovelUrl extends LightNovelUrl {
+    constructor(url) {
+        super(url);
+
+        this._query = new URL.URLSearchParams(url.query);
+
+        this._threadId = this._query.get('tid');
+        this._pageIndex = this._query.get('page');
+    }
+
+    get ThreadId() { return this._threadId; }
+
+    get PageIndex() { return this._pageIndex; }
+
+    changePageIndex(newPageIndex) {
+        const newUrl = new URL.URL(this.value);
+        const param = newUrl.searchParams;
+        param.set('page', newPageIndex.toString());
+        newUrl.search = param.toString();
+        return newUrl.toString();
+    }
+}
 
 function parseFloor(text) {
     text = text.trim();
@@ -74,9 +162,9 @@ function parseFloor(text) {
     return Number(match[1]);
 }
 
-function getMaxPageIndex() {
-    const window = this.window;
+function detectTotalPageCount(window) {
     const last = window.document.querySelector('a.last');
+
     let href = null;
     if (last) {
         href = last.href;
@@ -89,13 +177,10 @@ function getMaxPageIndex() {
             href = pgs[pgs.length - 2].href;
         }
     }
+
     if (href) {
-        let url = URL.parse(href);
-        const match = url.pathname.match(/^\/thread-\d+-(\d+)-1.html$/);
-        if (match === null) {
-            throw Error(`cannot parse max page index from ${url.pathname}`);
-        }
-        return match[1];
+        const url = LightNovelUrl.parse(href);
+        return Number(url.PageIndex);
     } else {
         return 1;
     }
@@ -106,6 +191,7 @@ class LightNovelParser extends HandlerBase {
         super();
         this._parseChapterIndex = 0;
         this._range = null;
+        this._url = null;
     }
 
     get name() {
@@ -157,6 +243,9 @@ class LightNovelParser extends HandlerBase {
     }
 
     initSession(session) {
+        const options = ioc.use('options');
+        this._url = LightNovelUrl.parse(options.source);
+
         const range = session.appopt.range;
         if (range) {
             this._range = new Range(range);
@@ -187,18 +276,15 @@ class LightNovelParser extends HandlerBase {
         this.initSession(session);
         const wnurl = getWellknownUrl(session);
         let url = URL.parse(wnurl);
-        const match = url.pathname.match(/^\/thread-(\d+)-1-1.html$/);
-        const threadId = match[1];
-        const response = await session.http.get(wnurl);
+        const response = await session.http.get(this._url.value);
         const dom = this.asDom(url, response.body.toString());
         this.checkDom(dom);
-        dom.getMaxPageIndex = getMaxPageIndex;
         let last = this.parse(session, dom);
-        const maxPageIndex = dom.getMaxPageIndex();
+        const maxPageIndex = detectTotalPageCount(dom.window);
         if (maxPageIndex > 1) {
             const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
             for (const pg of pgs) {
-                const url = `https://www.lightnovel.cn/thread-${threadId}-${pg}-1.html`;
+                const url = this._url.changePageIndex(pg);
                 last = this.downloadAndParse(session, url, last);
             }
         }
