@@ -246,15 +246,8 @@ class LightNovelParser extends HandlerBase {
                 return;
             }
 
-            for (const query of [
-                '.quote' // chapter cannot be a reply.
-            ]) {
-                if (content.querySelector(query)) {
-                    return;
-                }
-            }
-
-            ['style', 'script', '.pstatus', '.tip'].forEach(x => {
+            ['style', 'script', '.pstatus', '.tip', '.quote'].forEach(x => {
+                // quote 是引用，但有时引用也有正文内容
                 content.querySelectorAll(x).forEach(c => c.remove());
             });
 

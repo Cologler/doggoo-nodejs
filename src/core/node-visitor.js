@@ -61,6 +61,12 @@ class NodeVisitor {
         }
     }
 
+    ensureNoChild(el) {
+        if (el.childNodes.length !== 0) {
+            throw new Error('ensure no child.');
+        }
+    }
+
     visitElementNode(context) {
         switch (context.node.tagName) {
             case 'DIV':
@@ -78,6 +84,10 @@ class NodeVisitor {
             case 'STRIKE':
             case 'I':
                 this.visitInner(context);
+                break;
+
+            case 'HR': // 分割线
+                this.ensureNoChild(context.node);
                 break;
 
             case 'TABLE':
