@@ -1,7 +1,6 @@
 'use strict';
 
 const model = require('../model');
-const OutputGenerator = require('../handlers/output-generator');
 
 class Generator {
     generate(context) {
@@ -41,9 +40,12 @@ class Generator {
         throw new Error('NotImplementedError');
     }
 
+    async handle(context) {
+        this.generate(context);
+    }
+
     registerAsHandler(context) {
-        const outputHandler = new OutputGenerator(this);
-        context.addHandler(outputHandler);
+        context.addHandler(this);
     }
 }
 

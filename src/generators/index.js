@@ -1,11 +1,14 @@
 'use strict';
 
+const { ioc } = require('@adonisjs/fold');
+
 const MarkdownGenerator = require('./markdown-generator');
 const TxtGenerator = require('./txt-generator');
 const EpubGenerator = require('./epub-generator');
 
-function findGenerator(context) {
-    const name = context.appopt.format;
+function findGenerator(name) {
+
+
     switch (name) {
         case 'markdown':
         case 'md':
@@ -24,7 +27,11 @@ function findGenerator(context) {
 }
 
 function useGenerator(context) {
-    const generator = findGenerator(context);
+    const format = ioc.use('options').format;
+    const generator = findGenerator(format);
+    ioc.singleton('generator', () => {
+        return generator;
+    });
     generator.registerAsHandler(context);
 }
 
