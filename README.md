@@ -20,7 +20,9 @@ then run the command:
 npm run compile
 ```
 
-You should found the binary executable file in `dist-bin` directory.
+*If you cannot download precompiled base binaries file, try take a look [this](https://gist.github.com/Cologler/083efd4537b3cbf66fa3eacad3d635ff).*
+
+After compile, you should found the binary executable file in `dist-bin` directory.
 
 ## How To Use
 
@@ -33,22 +35,18 @@ doggoo.exe https://www.lightnovel.cn/thread-899097-1-1.html
 if you try to output txt file, try:
 
 ``` cmd
-doggoo.exe https://www.lightnovel.cn/thread-899097-1-1.html --gen txt
+doggoo.exe https://www.lightnovel.cn/thread-899097-1-1.html --format txt
 ```
 
 ### options
 
-#### gen
+#### format
 
 Set output format.
 
-* txt
 * epub (default)
+* txt
 * markdown
-
-#### output
-
-Set output dir.
 
 #### cc
 
