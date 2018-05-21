@@ -57,6 +57,18 @@ class ApplicationOptions {
         } else {
             this._limitChars = 0;
         }
+
+        // --cookie
+        this._cookie = options['--cookie'];
+        if (this._cookie && this._cookie.startsWith('@')) {
+            const path = this._cookie.substr(1);
+            const fs = ioc.use('fs');
+            if (!fs.existsSync(path)) {
+                console.error(`[ERROR] no such cookie file: <${path}>.`);
+                process.exit(1);
+            }
+            this._cookie = fs.readFileSync(path, 'utf-8');
+        }
     }
 
     get source() {
@@ -68,7 +80,7 @@ class ApplicationOptions {
     }
 
     get cookie() {
-        return options['--cookie'];
+        return this._cookie;
     }
 
     get output() {

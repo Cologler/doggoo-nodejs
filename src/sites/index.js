@@ -2,4 +2,4 @@
 
 module.exports = [
     require('./lightnovel')
-]
+];
