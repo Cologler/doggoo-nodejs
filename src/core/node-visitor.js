@@ -20,16 +20,11 @@ class ChapterContext {
 class NodeVisitor {
     constructor(context) {
         this._context = context;
+        this._visitInnerTagNames = new Set();
     }
 
-    absUrl(window, url) {
-        if (!/^https?:\/\//.test(url)) {
-            if (!url.startsWith('/')) {
-                url = '/' + url;
-            }
-            url = `${window['raw-protocol']}//${window['raw-host']}${url}`;
-        }
-        return url;
+    addVisitInnerTagName(tagName) {
+        this._visitInnerTagNames.add(tagName);
     }
 
     visit(context) {
@@ -68,6 +63,11 @@ class NodeVisitor {
     }
 
     visitElementNode(context) {
+        if (this._visitInnerTagNames.has(context.node.tagName)) {
+            this.visitInner(context);
+            return;
+        }
+
         switch (context.node.tagName) {
             case 'DIV':
                 this.visitInner(context);

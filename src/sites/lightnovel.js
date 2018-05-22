@@ -10,6 +10,7 @@ const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
 const { MessageError } = require('../err');
+const { getAbsoluteUrl } = require('../utils/url-utils');
 
 function match() {
     const options = ioc.use('options');
@@ -27,42 +28,6 @@ function match() {
         }
     }
     return false;
-}
-
-function getWellknownUrl() {
-    const options = ioc.use('options');
-    let url = URL.parse(options.source);
-    if (url && url.hostname === 'www.lightnovel.cn') {
-        // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
-        if ('/forum.php' === url.pathname) {
-            const query = new URL.URLSearchParams(url.query);
-            return `https://www.lightnovel.cn/thread-${query.get('tid')}-1-1.html`;
-        }
-    }
-    return options.source;
-}
-
-class LightNovelNodeVisitor extends NodeVisitor {
-    visitElementNode(context) {
-        switch (context.node.tagName) {
-            case 'IMG':
-                let url = context.node.getAttribute('file');
-                if (url === null) {
-                    url = context.node.src;
-                }
-                url = this.absUrl(context.window, url);
-                context.chapter.addImage(url);
-                break;
-
-            case 'IGNORE_JS_OP':
-                this.visitInner(context);
-                break;
-
-            default:
-                super.visitElementNode(context);
-                break;
-        }
-    }
 }
 
 class LightNovelUrl {
@@ -221,19 +186,15 @@ class LightNovelParser extends HandlerBase {
     parseChapter(session, window, node) {
         this._parseChapterIndex++;
 
-        const visitor = new LightNovelNodeVisitor(session);
+        const visitor = new NodeVisitor(session);
+        visitor.addVisitInnerTagName('IGNORE_JS_OP');
+
         const chapter = new Chapter();
         const chapterContext = new ChapterContext(window, chapter);
         const novel = session.novel;
-        try {
-            node.childNodes.forEach(z => {
-                visitor.visit(chapterContext.createChildNode(z));
-            });
-        } catch (error) {
-            const href = window['raw-href'];
-            console.log(`error on ${href}`);
-            throw error;
-        }
+        node.childNodes.forEach(z => {
+            visitor.visit(chapterContext.createChildNode(z));
+        });
 
         if (this._parseChapterIndex === 1) {
             this.parseNovelInfo(novel, chapter.textContents);
@@ -273,12 +234,10 @@ class LightNovelParser extends HandlerBase {
 
     async run(session) {
         this.initSession(session);
-        const wnurl = getWellknownUrl(session);
-        let url = URL.parse(wnurl);
         const response = await session.http.get(this._url.value);
-        const dom = this.asDom(url, response.body.toString());
+        const dom = new jsdom.JSDOM(response.body.toString());
         this.checkDom(dom);
-        let last = this.parse(session, dom);
+        let last = this._parse(session, dom, this._url.value);
         const maxPageIndex = detectTotalPageCount(dom.window);
         if (maxPageIndex > 1) {
             const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
@@ -292,25 +251,33 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    asDom(url, body) {
-        const dom = new jsdom.JSDOM(body);
-        const u = URL.parse(url);
-        dom.window['raw-protocol'] = u.protocol;
-        dom.window['raw-host'] = u.host;
-        dom.window['raw-href'] = url;
-        return dom;
-    }
-
     async downloadAndParse(session, url, lastPromise) {
         const response = await session.http.get(url);
-        const dom = this.asDom(url, response.body.toString());
+        const dom = new jsdom.JSDOM(response.body.toString());
         if (lastPromise) {
             await lastPromise;
         }
-        this.parse(session, dom);
+        this._parse(session, dom, url);
     }
 
-    parse(session, dom) {
+    _parse(session, dom, baseUrlString) {
+        try {
+            this._parseCore(session, dom, baseUrlString);
+        } catch (error) {
+            console.log(`error on ${baseUrlString}`);
+            throw error;
+        }
+    }
+
+    /**
+     *
+     *
+     * @param {any} session
+     * @param {any} dom
+     * @param {string} baseUrlString
+     * @memberof LightNovelParser
+     */
+    _parseCore(session, dom, baseUrlString) {
         const window = dom.window;
         const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posters.forEach(z => {
@@ -334,6 +301,15 @@ class LightNovelParser extends HandlerBase {
             ['style', 'script', '.pstatus', '.tip', '.quote'].forEach(x => {
                 // quote 是引用，但有时引用也有正文内容
                 content.querySelectorAll(x).forEach(c => c.remove());
+            });
+
+            // handle images
+            content.querySelectorAll('img').forEach(z => {
+                let imgUrl = z.getAttribute('file');
+                if (imgUrl === null) {
+                    imgUrl = z.src;
+                }
+                z.setAttribute('src', getAbsoluteUrl(baseUrlString, imgUrl));
             });
 
             this.parseChapter(session, window, content);
