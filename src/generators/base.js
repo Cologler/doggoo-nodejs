@@ -66,7 +66,7 @@ class NodeVisitor {
 }
 
 class Generator {
-    generate(context) {
+    run(context) {
         throw new Error('NotImplementedError');
     }
 
@@ -101,14 +101,6 @@ class Generator {
 
     onLinkElement(node) {
         throw new Error('NotImplementedError');
-    }
-
-    async handle(context) {
-        this.generate(context);
-    }
-
-    registerAsHandler(context) {
-        context.addHandler(this);
     }
 }
 

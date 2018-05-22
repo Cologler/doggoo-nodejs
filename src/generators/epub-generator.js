@@ -20,6 +20,10 @@ class EpubGenerator extends Generator {
         this._downloader = ioc.use('image-downloader');
     }
 
+    get requireImages() {
+        return this._hasImages;
+    }
+
     resolveCover(context) {
         const coverIndex = context.appopt.coverIndex;
         if (coverIndex) {
@@ -30,7 +34,7 @@ class EpubGenerator extends Generator {
         }
     }
 
-    generate(context) {
+    run(context) {
         const novel = context.novel;
         const book = this._book;
         let title = novel.titleOrDefault;
@@ -101,13 +105,6 @@ class EpubGenerator extends Generator {
     onLinkElement(node) {
         const data = xmlescape(node.title);
         return `<a href="${node.url}">${data}</a>`;
-    }
-
-    registerAsHandler(context) {
-        if (this._hasImages) {
-            context.addHandler(ioc.use('image-downloader'));
-        }
-        super.registerAsHandler(context);
     }
 }
 

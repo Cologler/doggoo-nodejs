@@ -39,7 +39,7 @@ class TxtGenerator extends Generator {
         super();
     }
 
-    generate(context) {
+    run(context) {
         const novel = context.novel;
 
         let text = context.getGenerateMessage('txt');

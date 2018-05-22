@@ -10,7 +10,7 @@ class HandlerBase {
         });
     }
 
-    async handle(context) {
+    async run(context) {
         throw new Error();
     }
 }

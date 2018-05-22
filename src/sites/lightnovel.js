@@ -271,7 +271,7 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    async handle(session) {
+    async run(session) {
         this.initSession(session);
         const wnurl = getWellknownUrl(session);
         let url = URL.parse(wnurl);

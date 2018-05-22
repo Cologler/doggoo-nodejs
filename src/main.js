@@ -52,9 +52,9 @@ async function main() {
 
     const session = new SessionContext();
     process.chdir(rootDir);
-    session.addHandler(parser);
+    session.addMiddleware(parser);
     useGenerator(session);
-    await session.execute();
+    await session.run();
 
     console.log(`[INFO] Done.`);
 }

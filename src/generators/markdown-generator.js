@@ -37,7 +37,7 @@ class MarkdownNodeVisitor extends NodeVisitor {
 }
 
 class MarkdownGenerator extends Generator {
-    generate(context) {
+    run(context) {
         const novel = context.novel;
         const w = novel.chapters.length.toString().length;
         novel.chapters.forEach((z, i) => {

@@ -20,7 +20,7 @@ class ImagesDownloader extends HandlerBase {
         this._results = {}; // map as <url:object>
     }
 
-    async handle(context) {
+    async run(context) {
         this._handle_core(context);
         await Promise.all(this._promises);
         console.log(`[INFO] download images finished.`);
