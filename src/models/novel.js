@@ -1,12 +1,5 @@
 'use strict';
 
-const { LineBreak, Text, Image, Link } = require('./models/elements');
-const { Chapter } = require('./models/sections');
-
-const TextElement = Text;
-const ImageElement = Image;
-const LinkElement = Link;
-
 class Novel {
     constructor() {
         this._title = null;
@@ -35,11 +28,5 @@ class Novel {
 }
 
 module.exports = {
-    Novel,
-    Chapter,
-
-    LineBreak,
-    TextElement,
-    ImageElement,
-    LinkElement
-}
+    Novel
+};

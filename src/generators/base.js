@@ -1,6 +1,8 @@
 'use strict';
 
-const model = require('../model');
+const os = require('os');
+
+const elements = require('../models/elements');
 
 /**
  * a simple stringbuilder.
@@ -35,13 +37,13 @@ class NodeVisitor {
 
     visitItem(item) {
         switch (item.constructor) {
-            case model.LineBreak:
+            case elements.LineBreak:
                 return this.onLineBreak(item);
-            case model.TextElement:
+            case elements.Text:
                 return this.onTextElement(item);
-            case model.ImageElement:
+            case elements.Image:
                 return this.onImageElement(item);
-            case model.LinkElement:
+            case elements.Link:
                 return this.onLinkElement(item);
             default:
                 throw new Error(`Unhandled chapter content type <${item.constructor}>`);

@@ -6,7 +6,7 @@ const fs = require('fs');
 const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
 
-const { ImageElement } = require('../model');
+const { Image } = require('../models/elements');
 const { HandlerBase } = require('./handler');
 
 const IMAGE_EXT = new Set([
@@ -28,7 +28,7 @@ class ImagesDownloader extends HandlerBase {
     /**
      *
      *
-     * @param {ImageElement} image
+     * @param {Image} image
      * @memberof ImagesDownloader
      */
     addImage(image) {

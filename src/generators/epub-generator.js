@@ -5,7 +5,7 @@ const uuid = require('node-uuid');
 const { JSDOM } = require('jsdom');
 
 const { Generator, NodeVisitor } = require('./base');
-const model = require('../model');
+const { Text } = require('../models/elements');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 
 class EpubNodeVisitor extends NodeVisitor {
@@ -143,7 +143,7 @@ class EpubGenerator extends Generator {
         this.resolveCover(context);
 
         novel.chapters.forEach((z, i) => {
-            const txtEls = z.contents.filter(z => z instanceof model.TextElement);
+            const txtEls = z.contents.filter(z => z instanceof Text);
             const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
             const text = new EpubNodeVisitor(this, i).visitChapter(z).value();
             book.addChapter(chapterTitle, text);
