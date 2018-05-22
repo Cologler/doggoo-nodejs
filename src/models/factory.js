@@ -10,6 +10,7 @@ class ElementFactory {
         if (this._requireImages) {
             this._imageDownloader = ioc.use('image-downloader');
         }
+        this._imageIndex = 0;
     }
 
     createLineBreak(nodeIndex) {
@@ -29,8 +30,10 @@ class ElementFactory {
 
     createImage(url, nodeIndex) {
         const node = new Image(url, {
-            nodeIndex
+            nodeIndex,
+            imageIndex: this._imageIndex
         });
+        this._imageIndex++;
         if (this._requireImages) {
             this._imageDownloader.addImage(node);
         }

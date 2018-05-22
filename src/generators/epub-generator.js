@@ -2,16 +2,101 @@
 
 const { ioc } = require('@adonisjs/fold');
 const uuid = require('node-uuid');
-const xmlescape = require('xml-escape');
+const { JSDOM } = require('jsdom');
 
-const { Generator } = require('./base');
+const { Generator, NodeVisitor } = require('./base');
 const model = require('../model');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
+
+class EpubNodeVisitor extends NodeVisitor {
+    /**
+     *
+     * Creates an instance of EpubNodeVisitor.
+     * @param {EpubGenerator} context
+     * @memberof EpubNodeVisitor
+     */
+    constructor(context, chapterIndex) {
+        super();
+        this._context = context;
+        this._chapterIndex = chapterIndex;
+
+        this._curText = null;
+
+        this._dom = new JSDOM();
+        this._window = this._dom.window;
+        this._document = this._window.document;
+        this._rootElement = this._document.createElement('div');
+    }
+
+    get book() {
+        return this._context.book;
+    }
+
+    get coverIndex() {
+        return this._context.coverIndex;
+    }
+
+    onLineBreak(item) {
+        // ignore
+    }
+
+    onTextElement(item) {
+        let el = null;
+        if (item.textIndex === 0) {
+            if (this._chapterIndex === 0) {
+                el = this._document.createElement('h1');
+            } else {
+                el = this._document.createElement('h2');
+            }
+        } else {
+            el = this._document.createElement('p');
+        }
+
+        el.textContent = item.content;
+        this._rootElement.appendChild(el);
+    }
+
+    onImageElement(item) {
+        const fileinfo = this._context.imageDownloader.getFileInfo(item.url);
+
+        if (this._context.requireImages) {
+            if (item.imageIndex === this.coverIndex || item.url === this.coverIndex) {
+                this.book.addCoverImage(fileinfo.path);
+            } else {
+                this.book.addAsset(fileinfo.path);
+            }
+        }
+
+        let el = null;
+        if (this._context.requireImages) {
+            el = this._document.createElement('img');
+            el.setAttribute('src', fileinfo.filename);
+            el.setAttribute('alt', fileinfo.filename);
+        } else {
+            el = this._document.createElement('p');
+            el.textContent = `<image ${item.url}>`;
+        }
+
+        this._rootElement.appendChild(el);;
+    }
+
+    onLinkElement(item) {
+        const el = this._document.createElement('a');
+        el.setAttribute('href', item.url);
+        el.textContent = item.title;
+    }
+
+    value() {
+        return this._rootElement.innerHTML;
+    }
+}
 
 class EpubGenerator extends Generator {
     constructor () {
         super();
         this._book = new EpubBuilder();
+
+        /** @type {string|Number} */
         this._cover = 0;
         this._imageIndex = 0;
         this._chapterIndex = 0;
@@ -22,6 +107,18 @@ class EpubGenerator extends Generator {
 
     get requireImages() {
         return this._hasImages;
+    }
+
+    get book() {
+        return this._book;
+    }
+
+    get coverIndex() {
+        return this._cover;
+    }
+
+    get imageDownloader() {
+        return this._downloader;
     }
 
     resolveCover(context) {
@@ -46,10 +143,9 @@ class EpubGenerator extends Generator {
         this.resolveCover(context);
 
         novel.chapters.forEach((z, i) => {
-            this._chapterIndex ++;
             const txtEls = z.contents.filter(z => z instanceof model.TextElement);
             const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
-            const text = this.toDoc(z).trim();
+            const text = new EpubNodeVisitor(this, i).visitChapter(z).value();
             book.addChapter(chapterTitle, text);
         });
         if (title.length >= 30) {
@@ -57,54 +153,6 @@ class EpubGenerator extends Generator {
         }
         const appinfo = ioc.use('app-info');
         book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
-    }
-
-    onLineBreak(node) {
-        return ''; // epub does not allow <br/>?
-    }
-
-    onTextElement(node) {
-        const data = xmlescape(node.content);
-
-        if (node.textIndex === 0) {
-            if (this._chapterIndex === 1) {
-                return `<h1>${data}</h1>`;
-            } else {
-                return `<h2>${data}</h2>`;
-            }
-        } else {
-            return `<p>${data}</p>`;
-        }
-    }
-
-    onImageElement(node) {
-        const fileinfo = this._downloader.getFileInfo(node.url);
-
-        if (this._hasImages) {
-            if (this._imageIndex === this._cover || node.url === this._cover) {
-                this._book.addCoverImage(fileinfo.path);
-            } else {
-                this._book.addAsset(fileinfo.path);
-            }
-        }
-
-        this._imageIndex++;
-        let image = '';
-
-        if (this._hasImages) {
-            image = `<img src="${fileinfo.filename}" alt="${fileinfo.filename}"/>`;
-        } else {
-            const pholder = `<image ${node.url}>`;
-            const data = xmlescape(pholder);
-            image = `<p>${data}</p>`;
-        }
-
-        return `<div style="page-break-after:always;">${image}</div>`;
-    }
-
-    onLinkElement(node) {
-        const data = xmlescape(node.title);
-        return `<a href="${node.url}">${data}</a>`;
     }
 }
 
