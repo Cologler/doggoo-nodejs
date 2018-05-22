@@ -8,6 +8,7 @@ const { ioc } = require('@adonisjs/fold');
 require('./app');
 require('./options');
 require('./handlers/image-downloader');
+require('./models/factory');
 
 const SessionContext = require('./core/session-context');
 const { useGenerator } = require('./generators');

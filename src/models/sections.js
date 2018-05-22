@@ -1,12 +1,17 @@
 'use strict';
 
-const { LineBreak, Text, Image, Link } = require('./elements');
+const { ioc } = require('@adonisjs/fold');
+
+const { LineBreak, Text } = require('./elements');
 
 class Section {
     constructor() {
         this._contents = [];
         this._textLength = 0;
         this._textIndex = 0;
+
+        /** @type {ElementFactory} */
+        this._factory = ioc.use('element-factory');
     }
 
     addText(text) {
@@ -20,10 +25,9 @@ class Section {
         if (last && last instanceof Text) {
             last.appendText(text);
         } else {
-            this._contents.push(new Text(text, {
-                textIndex: this._textIndex,
-                nodeIndex: this._contents.length
-            }));
+            this._contents.push(
+                this._factory.createText(text, this._textIndex, this._contents.length)
+            );
             this._textIndex ++;
         }
     }
@@ -33,22 +37,22 @@ class Section {
             // ignore leading <br/>
             return;
         }
-        this._contents.push(new LineBreak({
-            nodeIndex: this._contents.length
-        }));
+        this._contents.push(
+            this._factory.createLineBreak(this._contents.length)
+        );
     }
 
     addImage(url) {
-        this._contents.push(new Image(url, {
-            nodeIndex: this._contents.length
-        }));
+        this._contents.push(
+            this._factory.createImage(url,  this._contents.length)
+        );
     }
 
     addLink(url, title) {
         this._textLength += title.length;
-        this._contents.push(new Link(title, url, {
-            nodeIndex: this._contents.length
-        }));
+        this._contents.push(
+            this._factory.createLink(title, url, this._contents.length)
+        );
     }
 
     get contents() {

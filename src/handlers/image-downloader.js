@@ -21,28 +21,25 @@ class ImagesDownloader extends HandlerBase {
     }
 
     async run(context) {
-        this._handle_core(context);
         await Promise.all(this._promises);
-        console.log(`[INFO] download images finished.`);
+        console.log(`[INFO] download ${this._promises.length} images finished.`);
     }
 
-    _handle_core(context) {
-        let index = 0;
-        for (const chapter of context.novel.chapters) {
-            const images = chapter.contents.filter(z => z instanceof ImageElement);
-            if (images) {
-                const dir = 'assets';
-                if (!fs.existsSync(dir)) {
-                    fs.mkdirSync(dir);
-                }
-                for (const img of images) {
-                    const promise = this.onImage(dir, index, img);
-                    this._promises.push(promise);
-                    index++;
-                }
+    /**
+     *
+     *
+     * @param {ImageElement} image
+     * @memberof ImagesDownloader
+     */
+    addImage(image) {
+        const dir = 'assets';
+        if (this._promises.length === 0) {
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
             }
         }
-        console.log(`[INFO] begin download ${index} images.`);
+        const promise = this.onImage(dir, this._promises.length, image);
+        this._promises.push(promise);
     }
 
     async onImage(root, index, img) {
