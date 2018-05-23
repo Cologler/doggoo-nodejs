@@ -53,7 +53,7 @@ class ApplicationOptions {
                 process.exit(1);
             }
             this._limitChars = Number(this._limitChars);
-            console.log(`[INFO] configured limit-chars ${this._limitChars}.`);
+            console.log(`[INFO] configured limit-chars: ${this._limitChars}.`);
         } else {
             this._limitChars = 0;
         }
@@ -68,6 +68,14 @@ class ApplicationOptions {
                 process.exit(1);
             }
             this._cookie = fs.readFileSync(path, 'utf-8');
+            console.log(`[INFO] load cookie from file <${path}>.`);
+        } else if (!this._cookie) {
+            const path = 'doggoo_cookie.txt';
+            const fs = ioc.use('fs');
+            if (fs.existsSync(path)) {
+                this._cookie = fs.readFileSync(path, 'utf-8');
+            }
+            console.log(`[INFO] load default cookie from file <${path}>.`);
         }
     }
 
