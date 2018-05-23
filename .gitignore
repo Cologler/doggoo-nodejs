@@ -58,3 +58,4 @@ typings/
 .env
 
 dist-bin/
+src/doggoo_cookie.txt

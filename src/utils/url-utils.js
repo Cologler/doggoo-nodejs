@@ -8,8 +8,13 @@ function getAbsoluteUrl(baseUrlString, url) {
     }
 
     const baseUrl = new URL.URL(baseUrlString);
-    baseUrl.pathname = url;
-    return baseUrl.toString();
+    baseUrl.pathname = '';
+    baseUrl.search = '';
+    if (url.startsWith('/')) {
+        url = url.substr(1);
+    }
+    const ret = baseUrl.toString() + url;
+    return ret;
 }
 
 module.exports = {
