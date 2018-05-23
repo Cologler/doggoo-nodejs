@@ -6,7 +6,6 @@ const fs = require('fs');
 const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
 
-const { Image } = require('../models/elements');
 const { HandlerBase } = require('./handler');
 
 const IMAGE_EXT = new Set([
@@ -18,6 +17,13 @@ class ImagesDownloader extends HandlerBase {
         super();
         this._promises = [];
         this._results = {}; // map as <url:object>
+
+        this._requireImages = ioc.use('generator').requireImages === true;
+        if (this._requireImages) {
+            ioc.use('event-emitter').on('add-image', image => {
+                this.addImage(image);
+            });
+        }
     }
 
     async run(context) {

@@ -6,10 +6,9 @@ const { LineBreak, Text, Image, Link } = require('./elements');
 
 class ElementFactory {
     constructor() {
-        this._requireImages = ioc.use('generator').requireImages === true;
-        if (this._requireImages) {
-            this._imageDownloader = ioc.use('image-downloader');
-        }
+        /** @type {events.EventEmitter} */
+        this._eventEmitter = ioc.use('event-emitter');
+
         this._imageIndex = 0;
     }
 
@@ -34,9 +33,7 @@ class ElementFactory {
             imageIndex: this._imageIndex
         });
         this._imageIndex++;
-        if (this._requireImages) {
-            this._imageDownloader.addImage(node);
-        }
+        this._eventEmitter.emit('add-image', node);
         return node;
     }
 

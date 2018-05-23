@@ -2,6 +2,8 @@
 
 Just download the novel.
 
+**使用此工具生成的电子书禁止传播。**
+
 ## License
 
 **GPLv3**.
@@ -52,11 +54,11 @@ Set output format.
 
 Supported chinese convert:
 
-* hk2s : hongKongToSimplified,
-* s2hk : simplifiedToHongKong,
-* s2t  : simplifiedToTraditional,
-* s2tw : simplifiedToTaiwan,
-* t2hk : traditionalToHongKong,
-* t2s  : traditionalToSimplified,
-* t2tw : traditionalToTaiwan,
-* tw2s : taiwanToSimplified,
+* hk2s : hongKongToSimplified
+* s2hk : simplifiedToHongKong
+* s2t  : simplifiedToTraditional
+* s2tw : simplifiedToTaiwan
+* t2hk : traditionalToHongKong
+* t2s  : traditionalToSimplified
+* t2tw : traditionalToTaiwan
+* tw2s : taiwanToSimplified

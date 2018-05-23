@@ -102,7 +102,6 @@ class EpubGenerator extends Generator {
         this._chapterIndex = 0;
 
         this._hasImages = !ioc.use('options').noImages;
-        this._downloader = ioc.use('image-downloader');
     }
 
     get requireImages() {
@@ -118,7 +117,7 @@ class EpubGenerator extends Generator {
     }
 
     get imageDownloader() {
-        return this._downloader;
+        return this._downloader = this._downloader || ioc.use('image-downloader');
     }
 
     resolveCover(context) {

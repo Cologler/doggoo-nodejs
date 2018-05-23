@@ -5,6 +5,11 @@ const PATH = require('path');
 
 const { ioc } = require('@adonisjs/fold');
 
+ioc.singleton('event-emitter', () => {
+    const events = require('events');
+    return new events.EventEmitter();
+});
+
 require('./app');
 require('./options');
 require('./handlers/image-downloader');
