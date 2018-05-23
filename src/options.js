@@ -74,8 +74,8 @@ class ApplicationOptions {
             const fs = ioc.use('fs');
             if (fs.existsSync(path)) {
                 this._cookie = fs.readFileSync(path, 'utf-8');
+                console.log(`[INFO] load default cookie from file <${path}>.`);
             }
-            console.log(`[INFO] load default cookie from file <${path}>.`);
         }
     }
 
