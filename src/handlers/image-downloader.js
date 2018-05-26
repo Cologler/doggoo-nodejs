@@ -20,8 +20,8 @@ class ImagesDownloader extends HandlerBase {
 
         this._requireImages = ioc.use('generator').requireImages === true;
         if (this._requireImages) {
-            ioc.use('event-emitter').on('add-image', image => {
-                this.addImage(image);
+            ioc.use('event-emitter').on('add-image', (sender, args) => {
+                this.addImage(args.image);
             });
         }
     }

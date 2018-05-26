@@ -33,7 +33,9 @@ class ElementFactory {
             imageIndex: this._imageIndex
         });
         this._imageIndex++;
-        this._eventEmitter.emit('add-image', node);
+        this._eventEmitter.emit('add-image', this, {
+            image: node
+        });
         return node;
     }
 
