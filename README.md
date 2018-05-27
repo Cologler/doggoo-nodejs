@@ -62,3 +62,17 @@ Supported chinese convert:
 * t2s  : traditionalToSimplified
 * t2tw : traditionalToTaiwan
 * tw2s : taiwanToSimplified
+
+#### cookie
+
+##### set by args
+
+use `--cookie your_cookie`.
+
+##### default cookie file
+
+Auto load default cookie from file in current work directory named `doggoo_cookie.txt`.
+
+##### load from file
+
+`--cookie @cookie.txt` will load cookie from file `cookie.txt`.
