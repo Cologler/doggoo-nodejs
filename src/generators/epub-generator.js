@@ -69,9 +69,13 @@ class EpubNodeVisitor extends NodeVisitor {
 
         let el = null;
         if (this._context.requireImages) {
-            el = this._document.createElement('img');
-            el.setAttribute('src', fileinfo.filename);
-            el.setAttribute('alt', fileinfo.filename);
+            const elImg = this._document.createElement('img');
+            elImg.setAttribute('src', fileinfo.filename);
+            elImg.setAttribute('alt', fileinfo.filename);
+            const elDiv = this._document.createElement('div');
+            elDiv.setAttribute('style', 'page-break-after:always;');
+            elDiv.appendChild(elImg);
+            el = elDiv;
         } else {
             el = this._document.createElement('p');
             el.textContent = `<image ${item.url}>`;
