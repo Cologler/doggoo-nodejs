@@ -31,12 +31,6 @@ class ImagesDownloader extends HandlerBase {
         console.log(`[INFO] download ${this._promises.length} images finished.`);
     }
 
-    /**
-     *
-     *
-     * @param {Image} image
-     * @memberof ImagesDownloader
-     */
     addImage(image) {
         const dir = 'assets';
         if (this._promises.length === 0) {
@@ -48,8 +42,16 @@ class ImagesDownloader extends HandlerBase {
         this._promises.push(promise);
     }
 
+    /**
+     *
+     *
+     * @param {any} root
+     * @param {any} index
+     * @param {HTMLImageElement} img
+     * @memberof ImagesDownloader
+     */
     async onImage(root, index, img) {
-        const url = img.url;
+        const url = img.getAttribute('raw-url');
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
         if (!IMAGE_EXT.has(ext)) {
             ext = '.jpg';

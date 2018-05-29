@@ -15,20 +15,41 @@ class MarkdownNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak().appendLineBreak();
     }
 
+    /**
+     *
+     *
+     * @param {HTMLParagraphElement} item
+     * @memberof NodeVisitor
+     */
     onTextElement(item) {
-        let text = item.content;
+        let text = item.textContent;
         if (item.textIndex === 0) {
             text = '# ' + text;
         }
         this._builder.append(text).appendLineBreak();
     }
 
+    /**
+     *
+     *
+     * @param {HTMLImageElement} item
+     * @memberof NodeVisitor
+     */
     onImageElement(item) {
-        this._builder.append(`![](${item.path})`).appendLineBreak();
+        const url = item.getAttribute('raw-url');
+        this._builder.append(`![](${url})`).appendLineBreak();
     }
 
+    /**
+     *
+     *
+     * @param {HTMLAnchorElement} item
+     * @memberof NodeVisitor
+     */
     onLinkElement(item) {
-        this._builder.append(`[${item.title}](${item.url})`).appendLineBreak();
+        const title = item.textContent;
+        const url = item.getAttribute('href');
+        this._builder.append(`[${title}](${url})`).appendLineBreak();
     }
 
     value() {

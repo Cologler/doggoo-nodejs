@@ -2,10 +2,9 @@
 
 const { ioc } = require('@adonisjs/fold');
 
-const { LineBreak, Text } = require('./elements');
-
 class Section {
     constructor() {
+        /** @type {HTMLElement[]} */
         this._contents = [];
         this._textLength = 0;
         this._textIndex = 0;
@@ -22,8 +21,8 @@ class Section {
         }
         this._textLength += text.length;
         const last = this._contents.length > 0 && this._contents[this._contents.length - 1];
-        if (last && last instanceof Text) {
-            last.appendText(text);
+        if (last && last.tagName === 'P') {
+            last.textContent += text;
         } else {
             this._contents.push(
                 this._factory.createText(text, this._textIndex, this._contents.length)
@@ -66,13 +65,13 @@ class Section {
     get textContents() {
         let ret = [];
         this._contents.forEach(z => {
-            if (z instanceof Text) {
+            if (z.tagName === 'P') {
                 if (ret.length === 0) {
-                    ret.push(z.content);
+                    ret.push(z.textContent);
                 } else { // > 0
-                    ret[ret.length - 1] += z.content;
+                    ret[ret.length - 1] += z.textContent;
                 }
-            } else if (z instanceof LineBreak) {
+            } else if (z.tagName === 'BR') {
                 if (ret.length > 0) {
                     ret.push('');
                 }
@@ -112,4 +111,4 @@ class ToC extends Section {
 
 module.exports = {
     Chapter
-}
+};

@@ -120,4 +120,4 @@ class NodeVisitor {
 module.exports = {
     ChapterContext,
     NodeVisitor
-}
+};

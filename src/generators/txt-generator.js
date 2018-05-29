@@ -17,16 +17,35 @@ class TextNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak();
     }
 
+    /**
+     *
+     *
+     * @param {HTMLParagraphElement} item
+     * @memberof NodeVisitor
+     */
     onTextElement(item) {
-        this._builder.append(item.content);
+        this._builder.append(item.textContent);
     }
 
+    /**
+     *
+     *
+     * @param {HTMLImageElement} item
+     * @memberof NodeVisitor
+     */
     onImageElement(item) {
-        this._builder.append(`<image ${item.url}>`);
+        const url = item.getAttribute('raw-url');
+        this._builder.append(`<image ${url}>`);
     }
 
+    /**
+     *
+     *
+     * @param {HTMLAnchorElement} item
+     * @memberof NodeVisitor
+     */
     onLinkElement(item) {
-        this._builder.append(item.url);
+        this._builder.append(item.getAttribute('href'));
     }
 
     value() {

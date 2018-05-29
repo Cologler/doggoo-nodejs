@@ -5,7 +5,6 @@ const uuid = require('node-uuid');
 const { JSDOM } = require('jsdom');
 
 const { Generator, NodeVisitor } = require('./base');
-const { Text } = require('../models/elements');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 
 class EpubNodeVisitor extends NodeVisitor {
@@ -22,9 +21,8 @@ class EpubNodeVisitor extends NodeVisitor {
 
         this._curText = null;
 
-        this._dom = new JSDOM();
-        this._window = this._dom.window;
-        this._document = this._window.document;
+        /** @type {HTMLDocument} */
+        this._document = ioc.use('dom').window.document;
         this._rootElement = this._document.createElement('div');
     }
 
@@ -40,6 +38,12 @@ class EpubNodeVisitor extends NodeVisitor {
         // ignore
     }
 
+    /**
+     *
+     *
+     * @param {HTMLParagraphElement} item
+     * @memberof NodeVisitor
+     */
     onTextElement(item) {
         let el = null;
         if (item.textIndex === 0) {
@@ -48,19 +52,25 @@ class EpubNodeVisitor extends NodeVisitor {
             } else {
                 el = this._document.createElement('h2');
             }
+            el.textContent = item.textContent;
         } else {
-            el = this._document.createElement('p');
+            el = item;
         }
-
-        el.textContent = item.content;
         this._rootElement.appendChild(el);
     }
 
+    /**
+     *
+     *
+     * @param {HTMLImageElement} item
+     * @memberof NodeVisitor
+     */
     onImageElement(item) {
-        const fileinfo = this._context.imageDownloader.getFileInfo(item.url);
+        const url = item.getAttribute('raw-url');
+        const fileinfo = this._context.imageDownloader.getFileInfo(url);
 
         if (this._context.requireImages) {
-            if (item.imageIndex === this.coverIndex || item.url === this.coverIndex) {
+            if (item.imageIndex === this.coverIndex || url === this.coverIndex) {
                 this.book.addCoverImage(fileinfo.path);
             } else {
                 this.book.addAsset(fileinfo.path);
@@ -69,7 +79,7 @@ class EpubNodeVisitor extends NodeVisitor {
 
         let el = null;
         if (this._context.requireImages) {
-            const elImg = this._document.createElement('img');
+            const elImg = item;
             elImg.setAttribute('src', fileinfo.filename);
             elImg.setAttribute('alt', fileinfo.filename);
             const elDiv = this._document.createElement('div');
@@ -78,16 +88,20 @@ class EpubNodeVisitor extends NodeVisitor {
             el = elDiv;
         } else {
             el = this._document.createElement('p');
-            el.textContent = `<image ${item.url}>`;
+            el.textContent = `<image ${url}>`;
         }
 
         this._rootElement.appendChild(el);;
     }
 
+    /**
+     *
+     *
+     * @param {HTMLAnchorElement} item
+     * @memberof NodeVisitor
+     */
     onLinkElement(item) {
-        const el = this._document.createElement('a');
-        el.setAttribute('href', item.url);
-        el.textContent = item.title;
+        this._rootElement.appendChild(item);;
     }
 
     value() {
@@ -146,7 +160,7 @@ class EpubGenerator extends Generator {
         this.resolveCover(context);
 
         novel.chapters.forEach((z, i) => {
-            const txtEls = z.contents.filter(z => z instanceof Text);
+            const txtEls = z.contents.filter(z => z.tagName === 'P');
             const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
             const text = new EpubNodeVisitor(this, i).visitChapter(z).value();
             book.addChapter(chapterTitle, text);

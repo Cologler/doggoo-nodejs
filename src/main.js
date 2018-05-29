@@ -9,6 +9,10 @@ ioc.singleton('event-emitter', () => {
     const events = require('events');
     return new events.EventEmitter();
 });
+ioc.singleton('dom', () => {
+    const { JSDOM } = require('jsdom');
+    return new JSDOM();
+});
 
 require('./app');
 require('./options');

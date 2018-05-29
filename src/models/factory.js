@@ -2,36 +2,35 @@
 
 const { ioc } = require('@adonisjs/fold');
 
-const { LineBreak, Text, Image, Link } = require('./elements');
-
 class ElementFactory {
     constructor() {
-        /** @type {events.EventEmitter} */
         this._eventEmitter = ioc.use('event-emitter');
+        this._dom = ioc.use('dom');
+        /** @type {HTMLDocument} */
+        this._document = this._dom.window.document;
 
         this._imageIndex = 0;
     }
 
     createLineBreak(nodeIndex) {
-        const node = new LineBreak({
-            nodeIndex
-        });
+        const node = this._document.createElement('br');
+        node.nodeIndex = nodeIndex;
         return node;
     }
 
     createText(text, textIndex, nodeIndex) {
-        const node = new Text(text, {
-            nodeIndex,
-            textIndex
-        });
+        const node = this._document.createElement('p');
+        node.textContent = text;
+        node.textIndex = textIndex;
+        node.nodeIndex = nodeIndex;
         return node;
     }
 
     createImage(url, nodeIndex) {
-        const node = new Image(url, {
-            nodeIndex,
-            imageIndex: this._imageIndex
-        });
+        const node = this._document.createElement('img');
+        node.setAttribute('raw-url', url);
+        node.imageIndex = this._imageIndex;
+        node.nodeIndex = nodeIndex;
         this._imageIndex++;
         this._eventEmitter.emit('add-image', this, {
             image: node
@@ -40,9 +39,10 @@ class ElementFactory {
     }
 
     createLink(title, url, nodeIndex) {
-        const node = new Link(title, url, {
-            nodeIndex
-        });
+        const node = this._document.createElement('a');
+        node.textContent = title;
+        node.setAttribute('href', url);
+        node.nodeIndex = nodeIndex;
         return node;
     }
 }
