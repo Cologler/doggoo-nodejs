@@ -24,7 +24,7 @@ class Section {
             last.textContent += text;
         } else {
             this._contents.push(
-                this._factory.createText(text, this._contents.length)
+                this._factory.createText(text)
             );
         }
     }
@@ -35,20 +35,20 @@ class Section {
             return;
         }
         this._contents.push(
-            this._factory.createLineBreak(this._contents.length)
+            this._factory.createLineBreak()
         );
     }
 
     addImage(url) {
         this._contents.push(
-            this._factory.createImage(url,  this._contents.length)
+            this._factory.createImage(url)
         );
     }
 
     addLink(url, title) {
         this._textLength += title.length;
         this._contents.push(
-            this._factory.createLink(title, url, this._contents.length)
+            this._factory.createLink(title, url)
         );
     }
 

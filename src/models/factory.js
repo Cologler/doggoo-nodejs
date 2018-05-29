@@ -12,24 +12,21 @@ class ElementFactory {
         this._imageIndex = 0;
     }
 
-    createLineBreak(nodeIndex) {
+    createLineBreak() {
         const node = this._document.createElement('br');
-        node.nodeIndex = nodeIndex;
         return node;
     }
 
-    createText(text, nodeIndex) {
+    createText(text) {
         const node = this._document.createElement('p');
         node.textContent = text;
-        node.nodeIndex = nodeIndex;
         return node;
     }
 
-    createImage(url, nodeIndex) {
+    createImage(url) {
         const node = this._document.createElement('img');
         node.setAttribute('raw-url', url);
         node.imageIndex = this._imageIndex;
-        node.nodeIndex = nodeIndex;
         this._imageIndex++;
         this._eventEmitter.emit('add-image', this, {
             image: node
@@ -37,11 +34,10 @@ class ElementFactory {
         return node;
     }
 
-    createLink(title, url, nodeIndex) {
+    createLink(title, url) {
         const node = this._document.createElement('a');
         node.textContent = title;
         node.setAttribute('href', url);
-        node.nodeIndex = nodeIndex;
         return node;
     }
 }
