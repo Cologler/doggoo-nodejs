@@ -7,7 +7,6 @@ class Section {
         /** @type {HTMLElement[]} */
         this._contents = [];
         this._textLength = 0;
-        this._textIndex = 0;
 
         /** @type {ElementFactory} */
         this._factory = ioc.use('element-factory');
@@ -25,9 +24,8 @@ class Section {
             last.textContent += text;
         } else {
             this._contents.push(
-                this._factory.createText(text, this._textIndex, this._contents.length)
+                this._factory.createText(text, this._contents.length)
             );
-            this._textIndex ++;
         }
     }
 

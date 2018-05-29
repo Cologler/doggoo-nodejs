@@ -4,6 +4,7 @@ const { ioc } = require('@adonisjs/fold');
 const uuid = require('node-uuid');
 const { JSDOM } = require('jsdom');
 
+const { HtmlHelper } = require('../utils/html-helper');
 const { Generator, NodeVisitor } = require('./base');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 
@@ -46,12 +47,9 @@ class EpubNodeVisitor extends NodeVisitor {
      */
     onTextElement(item) {
         let el = null;
-        if (item.textIndex === 0) {
-            if (this._chapterIndex === 0) {
-                el = this._document.createElement('h1');
-            } else {
-                el = this._document.createElement('h2');
-            }
+        const helper = new HtmlHelper(item);
+        if (helper.isHeader) {
+            el = this._document.createElement(`h${helper.headerLevel}`);
             el.textContent = item.textContent;
         } else {
             el = item;

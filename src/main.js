@@ -59,10 +59,14 @@ async function main() {
 
     const rootDir = createRoot(options.output);
     console.log(`[INFO] Creating book on ${rootDir} ...`);
+    process.chdir(rootDir);
 
     const session = new SessionContext();
-    process.chdir(rootDir);
+    ioc.singleton('context', () => session);
+
     session.addMiddleware(parser);
+    const { Optimizer } = require('./handlers/optimize-composition');
+    session.addMiddleware(new Optimizer());
     useGenerator(session);
     await session.run();
 

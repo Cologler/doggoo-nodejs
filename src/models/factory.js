@@ -18,10 +18,9 @@ class ElementFactory {
         return node;
     }
 
-    createText(text, textIndex, nodeIndex) {
+    createText(text, nodeIndex) {
         const node = this._document.createElement('p');
         node.textContent = text;
-        node.textIndex = textIndex;
         node.nodeIndex = nodeIndex;
         return node;
     }
