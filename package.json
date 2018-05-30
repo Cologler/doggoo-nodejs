@@ -22,7 +22,7 @@
     "@types/node-uuid": "0.0.28"
   },
   "scripts": {
-    "compile": "pkg src/main.js -t node9-win -o dist-bin/doggoo"
+    "compile": "node src\\build-inc & pkg src/main.js -t node9-win -o dist-bin/doggoo"
   },
   "author": "cologler",
   "license": "GPLv3"
