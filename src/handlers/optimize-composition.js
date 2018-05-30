@@ -15,6 +15,7 @@ class Optimizer {
             if (item.tagName === 'P') {
                 const helper = new HtmlHelper(item);
                 helper.headerLevel = chapterIndex === 0 ? 1 : 2;
+                chapter.title = item.textContent;
                 return;
             }
         }

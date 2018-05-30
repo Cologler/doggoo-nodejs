@@ -15,10 +15,9 @@ class EpubNodeVisitor extends NodeVisitor {
      * @param {EpubGenerator} context
      * @memberof EpubNodeVisitor
      */
-    constructor(context, chapterIndex) {
+    constructor(context) {
         super();
         this._context = context;
-        this._chapterIndex = chapterIndex;
 
         this._curText = null;
 
@@ -50,6 +49,7 @@ class EpubNodeVisitor extends NodeVisitor {
         const helper = new HtmlHelper(item);
         if (helper.isHeader) {
             el = this._document.createElement(`h${helper.headerLevel}`);
+            el.style.textAlign = 'center';
             el.textContent = item.textContent;
         } else {
             el = item;
@@ -115,7 +115,6 @@ class EpubGenerator extends Generator {
         /** @type {string|Number} */
         this._cover = 0;
         this._imageIndex = 0;
-        this._chapterIndex = 0;
 
         this._hasImages = !ioc.use('options').noImages;
     }
@@ -157,10 +156,9 @@ class EpubGenerator extends Generator {
         book.UUID = uuid.v4();
         this.resolveCover(context);
 
-        novel.chapters.forEach((z, i) => {
-            const txtEls = z.contents.filter(z => z.tagName === 'P');
-            const chapterTitle = txtEls.length > 0 ? txtEls[0].content : 'Chapter Title';
-            const text = new EpubNodeVisitor(this, i).visitChapter(z).value();
+        novel.chapters.forEach(chapter => {
+            const chapterTitle = chapter.title || '';
+            const text = new EpubNodeVisitor(this).visitChapter(chapter).value();
             book.addChapter(chapterTitle, text);
         });
         if (title.length >= 30) {

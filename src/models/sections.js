@@ -6,7 +6,6 @@ class Section {
     constructor() {
         /** @type {HTMLElement[]} */
         this._contents = [];
-        this._textLength = 0;
 
         /** @type {ElementFactory} */
         this._factory = ioc.use('element-factory');
@@ -18,7 +17,6 @@ class Section {
             // ignore empty text.
             return;
         }
-        this._textLength += text.length;
         const last = this._contents.length > 0 && this._contents[this._contents.length - 1];
         if (last && last.tagName === 'P') {
             last.textContent += text;
@@ -46,7 +44,6 @@ class Section {
     }
 
     addLink(url, title) {
-        this._textLength += title.length;
         this._contents.push(
             this._factory.createLink(title, url)
         );
@@ -56,13 +53,10 @@ class Section {
         return this._contents;
     }
 
-    get textLength() {
-        return this._textLength;
-    }
-
     get textContents() {
-        let ret = [];
-        this._contents.forEach(z => {
+        /** @type {string[]} */
+        const ret = [];
+        this.contents.forEach(z => {
             if (z.tagName === 'P') {
                 if (ret.length === 0) {
                     ret.push(z.textContent);
@@ -75,15 +69,20 @@ class Section {
                 }
             }
         });
-        ret = ret.filter(z => z !== '');
-        return ret;
+        return ret.filter(z => z !== '');
+    }
+
+    get textLength() {
+        return this.textContents
+            .map(z => z.length)
+            .reduce((x, y) => x + y, 0);
     }
 }
 
 class Chapter extends Section {
     constructor() {
         super();
-        this._title = '';
+        this._title = null;
     }
 
     get title() {

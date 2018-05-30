@@ -163,6 +163,13 @@ class LightNovelParser extends HandlerBase {
         return 'LightNovel';
     }
 
+    /**
+     *
+     *
+     * @param {any} novel
+     * @param {string[]} lines
+     * @memberof LightNovelParser
+     */
     parseNovelInfo(novel, lines) {
         { // title
             if (lines.length > 0) {
