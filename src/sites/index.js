@@ -1,5 +1,6 @@
 'use strict';
 
 module.exports = [
-    require('./lightnovel')
+    require('./lightnovel'),
+    require('./file-txt')
 ];

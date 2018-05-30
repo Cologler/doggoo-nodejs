@@ -12,7 +12,7 @@ const doc = `
 Generate e-book from website.
 
 Usage:
-    doggoo URL [options]
+    doggoo SRC [options]
     doggoo -h | --help
     doggoo --version
 
@@ -23,9 +23,10 @@ Options:
     --range=<>          # Set range.
     --cc=<>             # Set the chinese converter.
     --cover-index=<>    # Set the cover index in all images.
-    --no-images         # Do not download images.
     --limit-chars=<>    # Set ignore if char count less than the value.
-    --css               # Use the css to create epub.
+    --no-images         # (epub) Do not download images.
+    --css=<>            # (epub) Use the css to create epub.
+    --header-regex=<>   # (src:txt) Use regex to split chapter.
 `;
 
 const appinfo = ioc.use('app-info');
@@ -95,10 +96,25 @@ class ApplicationOptions {
                 console.log(`[INFO] load default style from file <${cssPath}>.`);
             }
         }
+
+        // --header-regex
+        this._headerRegex = options['--header-regex'];
+        if (this._headerRegex) {
+            try {
+                this._headerRegex = new RegExp(this._headerRegex);
+            } catch (_) {
+                console.error(`[ERROR] invaild regex pattern: <${this._headerRegex}>.`);
+                process.exit(1);
+            }
+        }
     }
 
     get source() {
-        return options['URL'];
+        return options['SRC'];
+    }
+
+    set source(val) {
+        options['SRC'] = val;
     }
 
     get format() {
@@ -139,6 +155,10 @@ class ApplicationOptions {
 
     get css() {
         return this._css;
+    }
+
+    get headerRegex() {
+        return this._headerRegex;
     }
 }
 
