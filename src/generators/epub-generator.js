@@ -116,7 +116,7 @@ class EpubNodeVisitor extends NodeVisitor {
             elImg.setAttribute('src', fileinfo.filename);
             elImg.setAttribute('alt', fileinfo.filename);
             const elDiv = this._document.createElement('div');
-            elDiv.setAttribute('style', 'page-break-after:always;');
+            elDiv.classList.add('image-container');
             elDiv.appendChild(elImg);
             el = elDiv;
         } else {
