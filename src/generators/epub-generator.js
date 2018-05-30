@@ -3,10 +3,25 @@
 const { ioc } = require('@adonisjs/fold');
 const uuid = require('node-uuid');
 const { JSDOM } = require('jsdom');
+const { parse } = require('parse5');
+const { serializeToString } = require('xmlserializer');
 
 const { HtmlHelper } = require('../utils/html-helper');
 const { Generator, NodeVisitor } = require('./base');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
+const { Publisher } = require('epub-builder/dist/api.js');
+const { FileRefAsset } = require('epub-builder/dist/lib/asset.js');
+const { XHtmlDocument } = require('epub-builder/dist/lib/html.js');
+
+const STYLE_NAME = 'style.css';
+
+/*
+epub support elements:
+"address", "blockquote", "del", "div",
+"dl", "h1", "h2", "h3", "h4", "h5", "h6",
+"hr", "ins", "noscript", "ns:svg", "ol", "p", "pre",
+"script", "table" or "ul".
+ */
 
 class EpubNodeVisitor extends NodeVisitor {
     /**
@@ -21,9 +36,10 @@ class EpubNodeVisitor extends NodeVisitor {
 
         this._curText = null;
 
-        /** @type {HTMLDocument} */
-        this._document = ioc.use('dom').window.document;
+        this._dom = new JSDOM();
+        this._document = this._dom.window.document;
         this._rootElement = this._document.createElement('div');
+        this._document.body.appendChild(this._rootElement);
     }
 
     get book() {
@@ -32,6 +48,25 @@ class EpubNodeVisitor extends NodeVisitor {
 
     get coverIndex() {
         return this._context.coverIndex;
+    }
+
+    visitChapter(chapter) {
+        // title
+        const chapterTitle = chapter.title || '';
+        const titleEl = this._document.createElement('title');
+        titleEl.textContent = chapterTitle;
+        this._document.head.appendChild(titleEl);
+
+        // css
+        if (this._context.css) {
+            const styleEl = this._document.createElement('link');
+            styleEl.type = 'text/css';
+            styleEl.rel = 'stylesheet';
+            styleEl.href = STYLE_NAME;
+            this._document.head.appendChild(styleEl);
+        }
+
+        return super.visitChapter(chapter);
     }
 
     onLineBreak(item) {
@@ -49,7 +84,7 @@ class EpubNodeVisitor extends NodeVisitor {
         const helper = new HtmlHelper(item);
         if (helper.isHeader) {
             el = this._document.createElement(`h${helper.headerLevel}`);
-            el.style.textAlign = 'center';
+            //el.style.textAlign = 'center';
             el.textContent = item.textContent;
         } else {
             el = item;
@@ -103,7 +138,9 @@ class EpubNodeVisitor extends NodeVisitor {
     }
 
     value() {
-        return this._rootElement.innerHTML;
+        const html = this._dom.serialize();
+        const dom = parse(html);
+        return serializeToString(dom);
     }
 }
 
@@ -116,7 +153,9 @@ class EpubGenerator extends Generator {
         this._cover = 0;
         this._imageIndex = 0;
 
-        this._hasImages = !ioc.use('options').noImages;
+        const options = ioc.use('options');
+        this._hasImages = !options.noImages;
+        this._css = options.css;
     }
 
     get requireImages() {
@@ -129,6 +168,10 @@ class EpubGenerator extends Generator {
 
     get coverIndex() {
         return this._cover;
+    }
+
+    get css() {
+        return this._css;
     }
 
     get imageDownloader() {
@@ -154,12 +197,18 @@ class EpubGenerator extends Generator {
         book.author = novel.author || 'AUTHOR';
         book.summary = novel.summary || context.getGenerateMessage('epub');
         book.UUID = uuid.v4();
+        book.appendMeta(new Publisher('doggoo'));
         this.resolveCover(context);
+        if (this.css) {
+            book.addAsset(new FileRefAsset(this.css, STYLE_NAME));
+        }
 
-        novel.chapters.forEach(chapter => {
-            const chapterTitle = chapter.title || '';
+        novel.chapters.forEach((chapter, index) => {
             const text = new EpubNodeVisitor(this).visitChapter(chapter).value();
-            book.addChapter(chapterTitle, text);
+            const doc = new XHtmlDocument(`chapter-${index}.xhtml`);
+            doc.title = chapter.title || '';
+            doc.html = text;
+            book.addAsset(doc);
         });
         if (title.length >= 30) {
             title = 'book';

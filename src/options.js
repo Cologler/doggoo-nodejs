@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const path = require("path");
+
 const { docopt } = require('docopt');
 const { ioc } = require('@adonisjs/fold');
 
@@ -21,7 +24,8 @@ Options:
     --cc=<>             # Set the chinese converter.
     --cover-index=<>    # Set the cover index in all images.
     --no-images         # Do not download images.
-    --limit-chars=<>          # Set ignore if char count less than the value.
+    --limit-chars=<>    # Set ignore if char count less than the value.
+    --css               # Use the css to create epub.
 `;
 
 const appinfo = ioc.use('app-info');
@@ -62,7 +66,6 @@ class ApplicationOptions {
         this._cookie = options['--cookie'];
         if (this._cookie && this._cookie.startsWith('@')) {
             const path = this._cookie.substr(1);
-            const fs = ioc.use('fs');
             if (!fs.existsSync(path)) {
                 console.error(`[ERROR] no such cookie file: <${path}>.`);
                 process.exit(1);
@@ -71,10 +74,25 @@ class ApplicationOptions {
             console.log(`[INFO] load cookie from file <${path}>.`);
         } else if (!this._cookie) {
             const path = 'doggoo_cookie.txt';
-            const fs = ioc.use('fs');
             if (fs.existsSync(path)) {
                 this._cookie = fs.readFileSync(path, 'utf-8');
                 console.log(`[INFO] load default cookie from file <${path}>.`);
+            }
+        }
+
+        // --css
+        this._css = options['--css'];
+        if (this._css) {
+            if (!fs.existsSync(this._css)) {
+                console.error(`[ERROR] no such css file: <${this._css}>.`);
+                process.exit(1);
+            }
+            this._css = path.resolve(this._css);
+        } else {
+            let cssPath = path.resolve('doggoo_style.css');
+            if (fs.existsSync(cssPath)) {
+                this._css = cssPath;
+                console.log(`[INFO] load default style from file <${cssPath}>.`);
             }
         }
     }
@@ -117,6 +135,10 @@ class ApplicationOptions {
 
     get limitChars() {
         return this._limitChars;
+    }
+
+    get css() {
+        return this._css;
     }
 }
 
