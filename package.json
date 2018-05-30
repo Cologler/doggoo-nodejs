@@ -7,6 +7,7 @@
     "@adonisjs/fold": "^4.0.8",
     "async-request": "^1.2.0",
     "bhttp": "^1.2.4",
+    "chardet": "^0.5.0",
     "docopt": "^0.6.2",
     "epub-builder": "git+https://github.com/Cologler/epub-builder.git",
     "jsdom": "^11.9.0",
@@ -16,6 +17,7 @@
     "xmlserializer": "^0.6.1"
   },
   "devDependencies": {
+    "@types/chardet": "^0.5.0",
     "@types/docopt": "^0.6.31",
     "@types/node-uuid": "0.0.28"
   },
