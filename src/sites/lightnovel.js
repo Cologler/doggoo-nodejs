@@ -153,10 +153,12 @@ function detectTotalPageCount(window) {
 class LightNovelParser extends HandlerBase {
     constructor() {
         super();
-        this._parseChapterIndex = 0;
         this._range = null;
         this._url = null;
         this._options = ioc.use('options');
+
+        /** @type {Chapter[]} */
+        this._chapters = [];
     }
 
     get name() {
@@ -191,25 +193,16 @@ class LightNovelParser extends HandlerBase {
     }
 
     parseChapter(session, window, node) {
-        this._parseChapterIndex++;
-
         const visitor = new NodeVisitor(session);
         visitor.addVisitInnerTagName('IGNORE_JS_OP');
 
         const chapter = new Chapter();
         const chapterContext = new ChapterContext(window, chapter);
-        const novel = session.novel;
         node.childNodes.forEach(z => {
             visitor.visit(chapterContext.createChildNode(z));
         });
 
-        if (this._parseChapterIndex === 1) {
-            this.parseNovelInfo(novel, chapter.textContents);
-        }
-
-        if (chapter.textLength > this._options.limitChars) {
-            novel.add(chapter);
-        }
+        this._chapters.push(chapter);
     }
 
     initSession(session) {
@@ -256,12 +249,27 @@ class LightNovelParser extends HandlerBase {
         if (last) {
             await last;
         }
+
+        const novel = session.novel;
+
+        // resolve novel info
+        if (this._chapters.length > 0) {
+            this.parseNovelInfo(novel, this._chapters[0].textContents);
+        }
+
+        // add resolved chapters to novel.
+        this._chapters.forEach(chapter => {
+            if (chapter.textLength > this._options.limitChars) {
+                novel.add(chapter);
+            }
+        });
     }
 
     async downloadAndParse(session, url, lastPromise) {
         const response = await session.http.get(url);
         const dom = new jsdom.JSDOM(response.body.toString());
         if (lastPromise) {
+            // ensure parse after last parse.
             await lastPromise;
         }
         this._parse(session, dom, url);
