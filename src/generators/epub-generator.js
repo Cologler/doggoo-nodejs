@@ -95,7 +95,7 @@ class EpubNodeVisitor extends NodeVisitor {
 
     _appendPlaceHolderDiv(...classTokens) {
         const div = this._document.createElement('div');
-        div.classList.add(...token);
+        div.classList.add(...classTokens);
         this._rootElement.appendChild(div);;
     }
 
