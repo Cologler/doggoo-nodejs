@@ -17,7 +17,7 @@ class Section {
             // ignore empty text.
             return;
         }
-        const last = this._contents.length > 0 && this._contents[this._contents.length - 1];
+        const last = this._contents[this._contents.length - 1];
         if (last && last.tagName === 'P') {
             last.textContent += text;
         } else {
@@ -44,9 +44,15 @@ class Section {
     }
 
     addLink(url, title) {
-        this._contents.push(
-            this._factory.createLink(title, url)
-        );
+        const node = this._factory.createLink(title, url);
+        const last = this._contents[this._contents.length - 1];
+        if (last && last.tagName === 'P') {
+            last.appendChild(node);
+        } else {
+            this._contents.push(
+                node
+            );
+        }
     }
 
     get contents() {
