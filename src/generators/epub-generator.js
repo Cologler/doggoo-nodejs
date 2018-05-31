@@ -93,12 +93,6 @@ class EpubNodeVisitor extends NodeVisitor {
         this._rootElement.appendChild(el);
     }
 
-    _appendPlaceHolderDiv(...classTokens) {
-        const div = this._document.createElement('div');
-        div.classList.add(...classTokens);
-        this._rootElement.appendChild(div);;
-    }
-
     /**
      *
      *
@@ -131,9 +125,7 @@ class EpubNodeVisitor extends NodeVisitor {
             el.textContent = `<image ${url}>`;
         }
 
-        this._appendPlaceHolderDiv('before-image-container');
         this._rootElement.appendChild(el);
-        this._appendPlaceHolderDiv('after-image-container');
     }
 
     /**
