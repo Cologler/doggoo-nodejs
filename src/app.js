@@ -2,7 +2,7 @@
 
 const { ioc } = require('@adonisjs/fold');
 
-const build = 16;
+const build = 17;
 
 ioc.singleton('app-info', () => {
     return {

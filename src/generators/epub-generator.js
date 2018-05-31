@@ -5,6 +5,7 @@ const uuid = require('node-uuid');
 const { JSDOM } = require('jsdom');
 const { parse } = require('parse5');
 const { serializeToString } = require('xmlserializer');
+const isInvalid = require('is-invalid-path');
 
 const { HtmlHelper } = require('../utils/html-helper');
 const { Generator, NodeVisitor } = require('./base');
@@ -218,7 +219,8 @@ class EpubGenerator extends Generator {
             doc.html = text;
             book.addAsset(doc);
         });
-        if (title.length >= 30) {
+
+        if (title.length >= 30 || isInvalid(title)) {
             title = 'book';
         }
         const appinfo = ioc.use('app-info');

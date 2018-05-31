@@ -4,6 +4,7 @@ const os = require('os');
 const fs = require('fs');
 
 const { ioc } = require('@adonisjs/fold');
+const isInvalid = require('is-invalid-path');
 
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
 
@@ -66,8 +67,11 @@ class TxtGenerator extends Generator {
         text += novel.chapters.map(z => {
             return new TextNodeVisitor().visitChapter(z).value();
         }).join(os.EOL + os.EOL + os.EOL + os.EOL);
-        const title = novel.titleOrDefault;
 
+        let title = novel.titleOrDefault;
+        if (title.length >= 30 || isInvalid(title)) {
+            title = 'book';
+        }
         const appinfo = ioc.use('app-info');
         const filename = `${title}.${appinfo.name}-${appinfo.build}.txt`;
 
