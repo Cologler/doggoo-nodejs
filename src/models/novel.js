@@ -3,6 +3,7 @@
 class Novel {
     constructor() {
         this._title = null;
+        /** @type {object[]} */
         this._chapters = [];
     }
 
@@ -24,6 +25,10 @@ class Novel {
 
     get chapters() {
         return this._chapters;
+    }
+
+    filterChapters(func) {
+        this._chapters = this._chapters.filter(func);
     }
 }
 

@@ -65,12 +65,20 @@ async function main() {
     ioc.singleton('context', () => session);
 
     session.addMiddleware(parser);
+
+    if (options.hasFlag('--enable-filter')) {
+        const { Filter } = require('./handlers/chapter-filter');
+        session.addMiddleware(new Filter());
+    }
+
     const { Optimizer } = require('./handlers/optimize-composition');
     session.addMiddleware(new Optimizer());
+
     useGenerator(session);
     await session.run();
 
     console.log(`[INFO] Done.`);
+    process.exit(0);
 }
 
 (async function() {

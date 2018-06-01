@@ -17,16 +17,18 @@ Usage:
     doggoo --version
 
 Options:
-    --format=<>         # Set the output format.
-    --cookie=<>         # Set the cookie for network requests.
-    --output=<>         # Set the output location.
-    --range=<>          # Set range.
-    --cc=<>             # Set the chinese converter.
-    --cover-index=<>    # Set the cover index in all images.
-    --limit-chars=<>    # Set ignore if char count less than the value.
-    --no-images         # (epub) Do not download images.
-    --css=<>            # (epub) Use the css to create epub.
-    --header-regex=<>   # (src:txt) Use regex to split chapter.
+    --format=<>                 # Set the output format.
+    --cookie=<>                 # Set the cookie for network requests.
+    --output=<>                 # Set the output location.
+    --range=<>                  # Set range.
+    --cc=<>                     # Set the chinese converter.
+    --cover-index=<>            # Set the cover index in all images.
+    --limit-chars=<>            # Set ignore if char count less than the value.
+    --no-images                 # (epub) Do not download images.
+    --css=<>                    # (epub) Use the css to create epub.
+    --header-regex=<>           # (src:txt) Use regex to split chapter.
+    --enable-filter             # Allow filter chapter.
+    --enable-filter-summary     # Allow filter chapter.
 `;
 
 const appinfo = ioc.use('app-info');
