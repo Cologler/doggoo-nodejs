@@ -13,6 +13,12 @@ class Filter {
 
         console.log('[INFO] Begin filter ...');
 
+        const userInput = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            terminal: true
+        });
+
         while (true) {
             console.log('current chapters:');
 
@@ -36,13 +42,6 @@ class Filter {
 
             /** @type {string} */
             let inputValue = await new Promise(resolve => {
-                const userInput = readline.createInterface({
-                    input: process.stdin,
-                    output: process.stdout,
-                    terminal: false,
-                    prompt: ' '.repeat(7) + '> '
-                });
-
                 userInput.on('line', line => {
                     resolve(line);
                 });
@@ -50,7 +49,7 @@ class Filter {
 
             inputValue = inputValue.trim();
             if (inputValue === '' || inputValue.toLowerCase() === 'exit') {
-                return;
+                break;
             }
 
             const table = new Set();
@@ -58,6 +57,8 @@ class Filter {
 
             novel.filterChapters((chapter, index) => !table.has(index.toString()));
         }
+
+        userInput.close();
     }
 }
 

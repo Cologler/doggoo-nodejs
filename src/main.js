@@ -78,7 +78,6 @@ async function main() {
     await session.run();
 
     console.log(`[INFO] Done.`);
-    process.exit(0);
 }
 
 (async function() {
