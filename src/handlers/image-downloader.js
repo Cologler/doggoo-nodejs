@@ -27,8 +27,9 @@ class ImagesDownloader extends HandlerBase {
     }
 
     async run(context) {
+        console.log(`[INFO] downloading ${this._promises.length} images ...`);
         await Promise.all(this._promises);
-        console.log(`[INFO] download ${this._promises.length} images finished.`);
+        console.log(`[INFO] download images finished.`);
     }
 
     addImage(image) {
@@ -66,9 +67,20 @@ class ImagesDownloader extends HandlerBase {
 
         const promise = bhttp.get(url, {
             steam: true,
-            //responseTimeout: 5000
+            responseTimeout: 5000
         });
-        const response = await promise;
+
+        let response;
+
+        try {
+            response = await promise;
+        } catch (error) {
+            if (error instanceof bhttp.ResponseTimeoutError) {
+                console.error(`[ERROR] timeout when downloading image <${url}>.`);
+                process.exit(1);
+            }
+        }
+
         fs.writeFileSync(path, response.body, {
             encoding: 'binary',
             flag: 'w'
