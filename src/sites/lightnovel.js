@@ -69,6 +69,11 @@ class LightNovelUrl {
  * @extends {IUrlBuilder}
  */
 class UniLightNovelUrl extends LightNovelUrl {
+    /**
+     * Creates an instance of UniLightNovelUrl.
+     * @param {URL.Url} url
+     * @memberof UniLightNovelUrl
+     */
     constructor(url) {
         super(url);
 
@@ -97,6 +102,11 @@ class UniLightNovelUrl extends LightNovelUrl {
  * @extends {IUrlBuilder}
  */
 class PhpLightNovelUrl extends LightNovelUrl {
+    /**
+     * Creates an instance of PhpLightNovelUrl.
+     * @param {URL.Url} url
+     * @memberof PhpLightNovelUrl
+     */
     constructor(url) {
         super(url);
 
@@ -150,15 +160,35 @@ function detectTotalPageCount(window) {
     }
 }
 
+function createWebClient(options) {
+    const headers = {};
+    const cookie = options.cookie;
+    if (cookie) {
+        headers.cookie = cookie;
+        console.log('[INFO] init http with cookie.');
+    } else {
+        console.log('[INFO] init http without cookie.');
+    }
+
+    // web client
+    const http = bhttp.session({
+        headers,
+        cookieJar: false
+    });
+    return http;
+}
+
 class LightNovelParser extends HandlerBase {
     constructor() {
         super();
-        this._range = null;
-        this._url = null;
         this._options = ioc.use('options');
+        this._range = this._options.range;
+        this._url = LightNovelUrl.parse(this._options.source);
 
         /** @type {Chapter[]} */
         this._chapters = [];
+        this._http = createWebClient(this._options);
+        this._threadSubject = null;
     }
 
     get name() {
@@ -173,20 +203,26 @@ class LightNovelParser extends HandlerBase {
      * @memberof LightNovelParser
      */
     parseNovelInfo(novel, lines) {
-        { // title
-            if (lines.length > 0) {
-                novel.title = lines[0];
+        // title
+        const firstLine = lines[0] || null;
+        if (firstLine) {
+            if (!/^[\-=]+$/.test(firstLine)) {
+                novel.title = firstLine || null;
+                lines = lines.slice(1);
             }
-            lines = lines.slice(1);
         }
 
-        {
-            for (const line of lines) {
-                if (/作者/.test(line)) {
-                    const match = line.match(/作者[：:]\s*(\W+)\s*$/);
-                    if (match) {
-                        novel.author = match[1];
-                    }
+        if (novel.title === null) {
+            novel.title = this._threadSubject;
+        }
+
+        // author
+        for (const line of lines) {
+            if (/作者/.test(line)) {
+                const match = line.match(/作者[：:]\s*(\W+)\s*$/);
+                if (match) {
+                    novel.author = match[1];
+                    break;
                 }
             }
         }
@@ -205,49 +241,31 @@ class LightNovelParser extends HandlerBase {
         this._chapters.push(chapter);
     }
 
-    initSession(session) {
-        const options = ioc.use('options');
-        this._url = LightNovelUrl.parse(options.source);
-
-        this._range = session.appopt.range;
-
-        const headers = {};
-        const cookie = session.appopt.cookie;
-        if (cookie) {
-            headers.cookie = cookie;
-            console.log('[INFO] init session with cookie.');
-        } else {
-            console.log('[INFO] init session without cookie.');
-        }
-        session.http = bhttp.session({
-            headers,
-            cookieJar: false
-        });
-    }
-
-    checkDom(dom) {
-        const messagetext = dom.window.document.querySelector('#messagetext');
-        if (messagetext) {
-            throw new MessageError(messagetext.textContent);
-        }
-    }
-
     async run(session) {
-        this.initSession(session);
-        const response = await session.http.get(this._url.value);
-        const dom = new jsdom.JSDOM(response.body.toString());
-        this.checkDom(dom);
-        let last = this._parse(session, dom, this._url.value);
-        const maxPageIndex = detectTotalPageCount(dom.window);
+
+        /** @type {Promise<jsdom.JSDOM>[]} */
+        const asyncDoms = [];
+        const urls = [];
+        const firstUrl = this._url.changePageIndex(1);
+        urls.push(firstUrl);
+        asyncDoms.push(this._getDomAsync(firstUrl));
+        const firstDom = await asyncDoms[0];
+        this._checkDom(firstDom);
+        const maxPageIndex = detectTotalPageCount(firstDom.window);
         if (maxPageIndex > 1) {
-            const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2);
+            const pgs = [...Array(maxPageIndex - 1).keys()].map(z => z + 2); // 2 ~ max
             for (const pg of pgs) {
                 const url = this._url.changePageIndex(pg);
-                last = this.downloadAndParse(session, url, last);
+                urls.push(url);
+                asyncDoms.push(this._getDomAsync(url));
             }
         }
-        if (last) {
-            await last;
+
+        for (let i = 0; i < asyncDoms.length; i++) {
+            const url = urls[i];
+            const asyncDom = asyncDoms[i];
+            const dom = await asyncDom;
+            this._parse(session, dom, url);
         }
 
         const novel = session.novel;
@@ -265,14 +283,17 @@ class LightNovelParser extends HandlerBase {
         });
     }
 
-    async downloadAndParse(session, url, lastPromise) {
-        const response = await session.http.get(url);
+    async _getDomAsync(url) {
+        const response = await this._http.get(url);
         const dom = new jsdom.JSDOM(response.body.toString());
-        if (lastPromise) {
-            // ensure parse after last parse.
-            await lastPromise;
+        return dom;
+    }
+
+    _checkDom(dom) {
+        const messagetext = dom.window.document.querySelector('#messagetext');
+        if (messagetext) {
+            throw new MessageError(messagetext.textContent);
         }
-        this._parse(session, dom, url);
     }
 
     _parse(session, dom, baseUrlString) {
@@ -294,6 +315,12 @@ class LightNovelParser extends HandlerBase {
      */
     _parseCore(session, dom, baseUrlString) {
         const window = dom.window;
+
+        const threadSubject = document.querySelector('#thread_subject');
+        if (threadSubject) {
+            this._threadSubject = threadSubject.textContent;
+        }
+
         const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posters.forEach(z => {
             const posterId = z.id;
