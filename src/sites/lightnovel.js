@@ -315,6 +315,7 @@ class LightNovelParser extends HandlerBase {
      */
     _parseCore(session, dom, baseUrlString) {
         const window = dom.window;
+        const document = window.document;
 
         const threadSubject = document.querySelector('#thread_subject');
         if (threadSubject) {
