@@ -67,7 +67,7 @@ class ImagesDownloader extends HandlerBase {
 
         const promise = bhttp.get(url, {
             steam: true,
-            responseTimeout: 5000
+            responseTimeout: 30000
         });
 
         let response;
