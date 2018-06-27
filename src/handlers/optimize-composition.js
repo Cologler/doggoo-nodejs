@@ -48,6 +48,9 @@ class Optimizer {
                 if (ht !== null) {
                     hl += this._headerTypes[ht];
                 }
+                if (hl > 6) {
+                    hl = 6; // max header is h6.
+                }
                 HtmlHelper.set(item, 'HeaderLevel', hl);
                 chapter.title = item.textContent;
                 break;
