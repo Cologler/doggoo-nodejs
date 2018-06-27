@@ -79,6 +79,7 @@ class ImagesDownloader extends HandlerBase {
                 console.error(`[ERROR] timeout when downloading image <${url}>.`);
                 process.exit(1);
             }
+            throw error;
         }
 
         fs.writeFileSync(path, response.body, {
