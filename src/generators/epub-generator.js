@@ -13,6 +13,7 @@ const { EpubBuilder } = require('epub-builder/dist/builder.js');
 const { Publisher } = require('epub-builder/dist/api.js');
 const { FileRefAsset } = require('epub-builder/dist/lib/asset.js');
 const { XHtmlDocument } = require('epub-builder/dist/lib/html.js');
+const { TocBuilder, NavPoint } = require('epub-builder/dist/toc/toc-builder');
 
 const STYLE_NAME = 'style.css';
 
@@ -44,9 +45,10 @@ class EpubNodeVisitor extends NodeVisitor {
      * @param {EpubGenerator} context
      * @memberof EpubNodeVisitor
      */
-    constructor(context) {
+    constructor(context, filename) {
         super();
         this._context = context;
+        this._filename = filename;
 
         this._curText = null;
 
@@ -95,11 +97,30 @@ class EpubNodeVisitor extends NodeVisitor {
      */
     onTextElement(item) {
         let el = null;
+        /** @type {number} */
         const hl = HtmlHelper.get(item, 'HeaderLevel');
         if (hl !== null) {
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
             el.textContent = item.textContent;
+
+            const np = new NavPoint();
+            np.LabelText = el.textContent;
+            np.PlayOrder = this._context.PlayOrder ++;
+            np.ContentSrc = this._filename;
+            if (hl === 1 /* h1 */ || this._context.NavPointsTable.length === 0) {
+                this._context.NavPointsTable.push(np);
+            } else {
+                let npl = hl;
+                let parent = this._context.NavPointsTable[this._context.NavPointsTable.length - 1]; // last
+                while (--npl > 1) {
+                    if (!parent.SubNavPoints || parent.SubNavPoints.length === 0) {
+                        break;
+                    }
+                    parent = parent.SubNavPoints[parent.SubNavPoints.length - 1];
+                }
+                parent.addSubNavPoint(np);
+            }
         } else {
             el = item;
         }
@@ -170,6 +191,11 @@ class EpubGenerator extends Generator {
         const options = ioc.use('options');
         this._hasImages = !options.noImages;
         this._css = options.css;
+
+        /** @type {NavPoint[]} */
+        this.NavPointsTable = [];
+        /** @type {number} */
+        this.PlayOrder = 0;
     }
 
     get requireImages() {
@@ -205,12 +231,14 @@ class EpubGenerator extends Generator {
     run(context) {
         const novel = context.novel;
         const book = this._book;
+
         let title = novel.titleOrDefault;
+        const bookUid = uuid.v4();
 
         book.title = title;
         book.author = novel.author || 'AUTHOR';
         book.summary = novel.summary || context.getGenerateMessage('epub');
-        book.UUID = uuid.v4();
+        book.UUID = bookUid;
         book.appendMeta(new Publisher('doggoo'));
         this.resolveCover(context);
         if (this.css) {
@@ -218,12 +246,18 @@ class EpubGenerator extends Generator {
         }
 
         novel.chapters.forEach((chapter, index) => {
-            const text = new EpubNodeVisitor(this).visitChapter(chapter).value();
-            const doc = new XHtmlDocument(`chapter-${index}.xhtml`);
+            const filename = `chapter-${index}.xhtml`;
+            const text = new EpubNodeVisitor(this, filename).visitChapter(chapter).value();
+            const doc = new XHtmlDocument(filename);
             doc.title = chapter.title || '';
             doc.html = text;
             book.addAsset(doc);
         });
+
+        const tocBuilder = book.TocBuilder = new TocBuilder();
+        this.NavPointsTable.forEach(z => tocBuilder.addNavPoint(z));
+        tocBuilder.UUID = bookUid;
+        tocBuilder.title = title;
 
         if (title.length >= 30 || isInvalid(title)) {
             title = 'book';
