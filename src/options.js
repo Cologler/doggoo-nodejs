@@ -36,7 +36,7 @@ const appinfo = ioc.use('app-info');
 const options = docopt(doc, {
     argv: process.argv.slice(2),
     help: true,
-    version: `${appinfo.name} (build ${appinfo.build})`,
+    version: `${appinfo.name} (build ${appinfo.build}) at (${appinfo.buildtime.toISOString()})`,
     options_first: false,
     exit: true
 });
