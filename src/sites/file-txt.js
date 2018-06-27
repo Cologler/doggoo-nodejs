@@ -10,6 +10,7 @@ const readFileAsync = promisify(fs.readFile);
 const detectFileAsync = promisify(require('chardet').detectFile);
 
 const { Chapter } = require('../models/sections');
+const HtmlHelper = require('../utils/html-helper');
 
 function match() {
     const options = ioc.use('options');
@@ -42,23 +43,44 @@ class TxtFileParser {
         const filepath = options.source;
         const novel = context.novel;
         /** @type {RegExp} */
-        const headerRegex = options.headerRegex || /^第.+话/;
+        const headerRegex = options.headerRegex || /^第.+([章节话話])/;
 
         const encoding = await detectFileAsync(filepath);
         /** @type {string} */
         let text = await readFileAsync(filepath, encoding);
         text = text.replace(/\r/g, '');
 
+        /*
+         * TODO: add image from txt
+         * like: <image FILE_PATH>
+         */
+
         let chapter = null;
         for (const line of text.split(/\n/g)) {
             const t = context.cc(line);
-            if (chapter !== null && headerRegex !== null) {
-                if (headerRegex.test(line)) {
-                    chapter = this.createChapter();
+
+            const headerMatch = line.match(headerRegex);
+            if (chapter === null || headerMatch) {
+                chapter = this.createChapter();
+            }
+
+            const textNode = chapter.addText(t);
+            if (headerMatch && headerMatch[1]) {
+                let headerType = null;
+
+                if (/[章]/.test(headerMatch[1])) {
+                    headerType = 'chapter';
+                } else if (/[节]/.test(headerMatch[1])) {
+                    headerType = 'section';
+                } else if (/[话話]/.test(headerMatch[1])) {
+                    headerType = 'number';
+                }
+
+                if (headerType) {
+                    HtmlHelper.set(textNode, 'HeaderType', headerType);
                 }
             }
-            chapter = chapter || this.createChapter();
-            chapter.addText(t);
+
             chapter.addLineBreak();
         }
 
