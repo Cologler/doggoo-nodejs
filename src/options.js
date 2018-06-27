@@ -33,10 +33,12 @@ Options:
 
 const appinfo = ioc.use('app-info');
 
+const buildtime = `${appinfo.buildtime.toLocaleDateString()} ${appinfo.buildtime.toLocaleTimeString()}`;
+
 const options = docopt(doc, {
     argv: process.argv.slice(2),
     help: true,
-    version: `${appinfo.name} (build ${appinfo.build}) at (${appinfo.buildtime.toISOString()})`,
+    version: `${appinfo.name} (build ${appinfo.build}) at (${buildtime})`,
     options_first: false,
     exit: true
 });
