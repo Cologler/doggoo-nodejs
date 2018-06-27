@@ -17,14 +17,16 @@ class Section {
             // ignore empty text.
             return;
         }
-        const last = this._contents[this._contents.length - 1];
+
+        let last = this._contents[this._contents.length - 1];
         if (last && last.tagName === 'P') {
             last.textContent += text;
         } else {
             this._contents.push(
-                this._factory.createText(text)
+                last = this._factory.createText(text)
             );
         }
+        return last;
     }
 
     addLineBreak() {
@@ -32,19 +34,21 @@ class Section {
             // ignore leading <br/>
             return;
         }
-        this._contents.push(
-            this._factory.createLineBreak()
-        );
+
+        const node = this._factory.createLineBreak();
+        this._contents.push(node);
+        return node;
     }
 
     addImage(url) {
-        this._contents.push(
-            this._factory.createImage(url)
-        );
+        const node = this._factory.createImage(url);
+        this._contents.push(node);
+        return node;
     }
 
     addLink(url, title) {
         const node = this._factory.createLink(title, url);
+
         const last = this._contents[this._contents.length - 1];
         if (last && last.tagName === 'P') {
             last.appendChild(node);
@@ -53,6 +57,8 @@ class Section {
                 node
             );
         }
+
+        return node;
     }
 
     get contents() {
