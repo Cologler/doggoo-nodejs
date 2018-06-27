@@ -7,7 +7,7 @@ const { parse } = require('parse5');
 const { serializeToString } = require('xmlserializer');
 const isInvalid = require('is-invalid-path');
 
-const { HtmlHelper } = require('../utils/html-helper');
+const HtmlHelper = require('../utils/html-helper');
 const { Generator, NodeVisitor } = require('./base');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 const { Publisher } = require('epub-builder/dist/api.js');
@@ -17,11 +17,24 @@ const { XHtmlDocument } = require('epub-builder/dist/lib/html.js');
 const STYLE_NAME = 'style.css';
 
 /*
-epub support elements:
-"address", "blockquote", "del", "div",
-"dl", "h1", "h2", "h3", "h4", "h5", "h6",
-"hr", "ins", "noscript", "ns:svg", "ol", "p", "pre",
-"script", "table" or "ul".
+ * Allowed elements in any:
+ * "del", "ins", "noscript", "ns:svg", "script".
+ */
+
+/*
+ * Allowed elements in <div>:
+ * "address", "blockquote", "div", "dl",
+ * "h1", "h2", "h3", "h4", "h5", "h6",
+ * "hr", "ol", "p", "pre", "table" or "ul".
+ */
+
+/*
+ * Allowed elements in <p>:
+ * "a", "abbr", "acronym", "applet",
+ * "b", "bdo", "big", "br", "cite", "code", "dfn", "em",
+ * "i", "iframe", "img", "kbd", "map", "object", "q",
+ * "samp", "small", "span", "strong", "sub", "sup",
+ * "tt" or "var"
  */
 
 class EpubNodeVisitor extends NodeVisitor {
@@ -82,9 +95,9 @@ class EpubNodeVisitor extends NodeVisitor {
      */
     onTextElement(item) {
         let el = null;
-        const helper = new HtmlHelper(item);
-        if (helper.isHeader) {
-            el = this._document.createElement(`h${helper.headerLevel}`);
+        const hl = HtmlHelper.get(item, 'HeaderLevel');
+        if (hl !== null) {
+            el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
             el.textContent = item.textContent;
         } else {

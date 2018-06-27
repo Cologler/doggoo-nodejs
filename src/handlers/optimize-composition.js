@@ -1,6 +1,6 @@
 'use strict';
 
-const { HtmlHelper } = require('../utils/html-helper');
+const HtmlHelper = require('../utils/html-helper');
 
 class Optimizer {
     async run(context) {
@@ -13,8 +13,7 @@ class Optimizer {
     optimizeChapter(chapter, chapterIndex) {
         for (const item of chapter.contents) {
             if (item.tagName === 'P') {
-                const helper = new HtmlHelper(item);
-                helper.headerLevel = chapterIndex === 0 ? 1 : 2;
+                HtmlHelper.set(item, 'HeaderLevel', chapterIndex === 0 ? 1 : 2);
                 chapter.title = item.textContent;
                 return;
             }

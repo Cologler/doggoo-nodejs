@@ -3,7 +3,7 @@
 const os = require('os');
 const fs = require('fs');
 
-const { HtmlHelper } = require('../utils/html-helper');
+const HtmlHelper = require('../utils/html-helper');
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
 
 class MarkdownNodeVisitor extends NodeVisitor {
@@ -24,10 +24,9 @@ class MarkdownNodeVisitor extends NodeVisitor {
      */
     onTextElement(item) {
         let text = item.textContent;
-        const helper = new HtmlHelper(item);
-        if (helper.isHeader) {
-            let headerLevel = helper.headerLevel;
-            text = '#'.repeat(headerLevel) + ' ' + text;
+        const hl = HtmlHelper.get(item, 'HeaderLevel');
+        if (hl !== null) {
+            text = '#'.repeat(hl) + ' ' + text;
         }
         this._builder.append(text).appendLineBreak();
     }
