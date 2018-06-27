@@ -204,16 +204,9 @@ class LightNovelParser extends HandlerBase {
      * @memberof LightNovelParser
      */
     buildNovelInfo(novel) {
-        const firstChapter = this._chapters[0];
+        const firstChapter = novel.chapters[0];
         if (!firstChapter) {
             return;
-        }
-
-        for (const item of firstChapter.contents) {
-            if (item.tagName === 'P') {
-                HtmlHelper.set(item, 'HeaderType', 'title');
-                break;
-            }
         }
 
         let lines = firstChapter.textContents;
@@ -285,13 +278,23 @@ class LightNovelParser extends HandlerBase {
 
         const novel = session.novel;
 
-        // resolve novel info
-        this.buildNovelInfo(novel);
-
         // add resolved chapters to novel.
         this._chapters.forEach(chapter => {
             if (chapter.textLength > this._options.limitChars) {
                 novel.add(chapter);
+            }
+        });
+
+        // resolve novel info
+        this.buildNovelInfo(novel);
+
+        novel.chapters.forEach((chapter, index) => {
+            for (const item of chapter.contents) {
+                if (item.tagName === 'P') {
+                    const ht = index === 0 ? 'title' : 'chapter';
+                    HtmlHelper.set(item, 'HeaderType', ht);
+                    break;
+                }
             }
         });
     }
