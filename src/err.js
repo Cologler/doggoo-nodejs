@@ -9,6 +9,12 @@ class MessageError extends Error {
 
 }
 
+function timeout(msg) {
+    console.error(`[ERROR] ${msg}`);
+    process.exit(1);
+}
+
 module.exports = {
-    MessageError
+    MessageError,
+    timeout
 };
