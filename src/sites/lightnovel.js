@@ -236,19 +236,6 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    parseChapter(session, window, node) {
-        const visitor = new NodeVisitor(session);
-        visitor.addVisitInnerTagName('IGNORE_JS_OP');
-
-        const chapter = new Chapter();
-        const chapterContext = new ChapterContext(window, chapter);
-        node.childNodes.forEach(z => {
-            visitor.visit(chapterContext.createChildNode(z));
-        });
-
-        this._chapters.push(chapter);
-    }
-
     async run(session) {
 
         /** @type {Promise<jsdom.JSDOM>[]} */
@@ -346,41 +333,66 @@ class LightNovelParser extends HandlerBase {
             this._threadSubject = threadSubject.textContent;
         }
 
-        const posters = Array.from(window.document.querySelectorAll('#postlist .plhin'));
-        posters.forEach(z => {
-            const posterId = z.id;
-            if (this._range) {
-                const posterId = z.id.substr(3);
-                const rangeText = z.querySelector(`#postnum${posterId}`).textContent;
-                const floor = parseFloor(rangeText);
-                if (!this._range.in(floor)) {
-                    return;
-                }
-            }
+        const posts = Array.from(window.document.querySelectorAll('#postlist .plhin'));
+        posts.forEach(post => {
+            this._parsePost({
+                session, window, post, baseUrlString
+            });
+        });
+    }
 
-            const content = z.querySelector('.pct .t_f');
-            if (content === null) {
-                // maybe: 作者被禁止或删除 内容自动屏蔽
-                console.info(`[INFO] poster ${posterId} (page) has not content.`);
+    _parsePost(options) {
+        const { session, window, post, baseUrlString } = options;
+
+        if (this._range) {
+            const postIndex = post.querySelector('.plc .pi strong a em').textContent;
+            const floor = Number(postIndex);
+            if (!this._range.in(floor)) {
                 return;
             }
+        }
 
-            ['style', 'script', '.pstatus', '.tip', '.quote'].forEach(x => {
-                // quote 是引用，但有时引用也有正文内容
-                content.querySelectorAll(x).forEach(c => c.remove());
-            });
+        const content = post.querySelector('.pct .t_f');
+        if (content === null) {
+            // maybe: 作者被禁止或删除 内容自动屏蔽
+            console.info(`[INFO] post ${post.id} has not content.`);
+            return;
+        }
 
-            // handle images
-            content.querySelectorAll('img').forEach(z => {
-                let imgUrl = z.getAttribute('file');
-                if (imgUrl === null) {
-                    imgUrl = z.src;
-                }
-                z.setAttribute('src', getAbsoluteUrl(baseUrlString, imgUrl));
-            });
-
-            this.parseChapter(session, window, content);
+        ['style', 'script', '.pstatus', '.tip', '.quote'].forEach(x => {
+            // quote 是引用，但有时引用也有正文内容
+            content.querySelectorAll(x).forEach(c => c.remove());
         });
+
+        // handle images
+        content.querySelectorAll('img').forEach(z => {
+            let imgUrl = z.getAttribute('file');
+            if (imgUrl === null) {
+                imgUrl = z.src;
+            }
+            z.setAttribute('src', getAbsoluteUrl(baseUrlString, imgUrl));
+        });
+
+        // parse chapter content
+        const visitor = new NodeVisitor(session);
+        visitor.addVisitInnerTagName('IGNORE_JS_OP');
+
+        const chapter = new Chapter();
+
+        // some post has header.
+        const pcb = post.querySelector('.plc .pcb');
+        if (pcb.children[0] && pcb.children[0].tagName === 'H2') {
+            chapter.addText(pcb.children[0].textContent);
+            chapter.addLineBreak();
+        }
+
+        // visit post content
+        const chapterContext = new ChapterContext(window, chapter);
+        content.childNodes.forEach(z => {
+            visitor.visit(chapterContext.createChildNode(z));
+        });
+
+        this._chapters.push(chapter);
     }
 }
 
