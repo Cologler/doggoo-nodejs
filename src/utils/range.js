@@ -3,6 +3,21 @@
 const assert = require('assert');
 const { MessageError } = require('../err');
 
+function toRangeNumbers(text) {
+    if (/^\d+?$/.test(text)) {
+        return [1, Number(text)];
+    }
+
+    const match2 = text.match(/^(\d+)-(\d+)?$/);
+    if (!match2 || (match2[1] || match2[2]) === undefined) {
+        throw new MessageError(`${text} is invalid range args. try input like '1-15'`);
+    }
+    assert.strictEqual(match2.length, 3);
+    const min = match2[1] ? Number(match2[1]) : null;
+    const max = match2[2] ? Number(match2[2]) : null;
+    return [min, max];
+}
+
 class Range {
     constructor() {
         let min = null;
@@ -10,13 +25,7 @@ class Range {
         if (arguments.length === 1) {
             const source = arguments[0];
             assert.strictEqual(typeof source, 'string');
-            const match = source.match(/^(\d+)-(\d+)?$/);
-            if (!match || (match[1] || match[2]) === undefined) {
-                throw new MessageError(`${source} is invalid range args. try input like '1-15'`);
-            }
-            assert.strictEqual(match.length, 3);
-            min = match[1] ? Number(match[1]) : null;
-            max = match[2] ? Number(match[2]) : null;
+            [min, max] = toRangeNumbers(source);
         } else if (arguments.length === 2) {
             min = arguments[0];
             max = arguments[1];
