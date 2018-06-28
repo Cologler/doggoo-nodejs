@@ -17,9 +17,12 @@ class ElementFactory {
         return node;
     }
 
-    createText(text) {
+    createTextNode(text) {
+        return this._document.createTextNode(text);
+    }
+
+    createText() {
         const node = this._document.createElement('p');
-        node.textContent = text;
         return node;
     }
 

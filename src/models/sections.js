@@ -11,6 +11,14 @@ class Section {
         this._factory = ioc.use('element-factory');
     }
 
+    _getLastTextElement() {
+        let last = this._contents[this._contents.length - 1];
+        if (!last || last.tagName !== 'P') {
+            this._contents.push(last = this._factory.createText());
+        }
+        return last;
+    }
+
     addText(text) {
         text = text.trim();
         if (!text) {
@@ -18,14 +26,8 @@ class Section {
             return;
         }
 
-        let last = this._contents[this._contents.length - 1];
-        if (last && last.tagName === 'P') {
-            last.textContent += text;
-        } else {
-            this._contents.push(
-                last = this._factory.createText(text)
-            );
-        }
+        const last = this._getLastTextElement();
+        last.appendChild(this._factory.createTextNode(text));
         return last;
     }
 
@@ -48,16 +50,8 @@ class Section {
 
     addLink(url, title) {
         const node = this._factory.createLink(title, url);
-
-        const last = this._contents[this._contents.length - 1];
-        if (last && last.tagName === 'P') {
-            last.appendChild(node);
-        } else {
-            this._contents.push(
-                node
-            );
-        }
-
+        const last = this._getLastTextElement();
+        last.appendChild(node);
         return node;
     }
 
