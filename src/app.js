@@ -2,8 +2,8 @@
 
 const { ioc } = require('@adonisjs/fold');
 
-const build = 26;
-const buildtime = new Date(1530140382284);
+const build = 28;
+const buildtime = new Date(1530154601918);
 
 ioc.singleton('app-info', () => {
     return {

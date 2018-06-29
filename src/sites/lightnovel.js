@@ -9,7 +9,7 @@ const bhttp = require("bhttp");
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
-const { MessageError, timeout } = require('../err');
+const { MessageError, exit } = require('../err');
 const { getAbsoluteUrl } = require('../utils/url-utils');
 const HtmlHelper = require('../utils/html-helper');
 
@@ -292,7 +292,7 @@ class LightNovelParser extends HandlerBase {
             response = await this._http.get(url);
         } catch (error) {
             if (error.name === 'ConnectionTimeoutError') {
-                timeout(`timeout when load url ${url}.`);
+                exit(`timeout when load url ${url}.`);
             }
             throw error;
         }

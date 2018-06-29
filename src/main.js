@@ -47,6 +47,7 @@ function createRoot(output) {
 
 async function main() {
     const options = ioc.use('options');
+    await options.loadAsync();
 
     const site = sites.find(z => z.match());
     if (!site) {

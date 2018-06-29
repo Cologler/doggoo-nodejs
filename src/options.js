@@ -2,11 +2,17 @@
 
 const fs = require('fs');
 const path = require("path");
+const { promisify } = require('util');
 
 const { docopt } = require('docopt');
 const { ioc } = require('@adonisjs/fold');
 
+const { exit } = require('./err');
 const { Range } = require('./utils/range');
+
+const existsAsync = promisify(fs.exists);
+const readFileAsync = promisify(fs.readFile);
+const homedir = require('os').homedir();
 
 const doc = `
 Generate e-book from website.
@@ -67,39 +73,8 @@ class ApplicationOptions {
             this._limitChars = 0;
         }
 
-        // --cookie
-        this._cookie = options['--cookie'];
-        if (this._cookie && this._cookie.startsWith('@')) {
-            const path = this._cookie.substr(1);
-            if (!fs.existsSync(path)) {
-                console.error(`[ERROR] no such cookie file: <${path}>.`);
-                process.exit(1);
-            }
-            this._cookie = fs.readFileSync(path, 'utf-8');
-            console.log(`[INFO] load cookie from file <${path}>.`);
-        } else if (!this._cookie) {
-            const path = 'doggoo_cookie.txt';
-            if (fs.existsSync(path)) {
-                this._cookie = fs.readFileSync(path, 'utf-8');
-                console.log(`[INFO] load default cookie from file <${path}>.`);
-            }
-        }
-
-        // --css
-        this._css = options['--css'];
-        if (this._css) {
-            if (!fs.existsSync(this._css)) {
-                console.error(`[ERROR] no such css file: <${this._css}>.`);
-                process.exit(1);
-            }
-            this._css = path.resolve(this._css);
-        } else {
-            let cssPath = path.resolve('doggoo_style.css');
-            if (fs.existsSync(cssPath)) {
-                this._css = cssPath;
-                console.log(`[INFO] load default style from file <${cssPath}>.`);
-            }
-        }
+        this._cookie = null;
+        this._css = null;
 
         // --header-regex
         this._headerRegex = options['--header-regex'];
@@ -163,6 +138,58 @@ class ApplicationOptions {
 
     get headerRegex() {
         return this._headerRegex;
+    }
+
+    async loadAsync() {
+        async function resolvePath(fileName) {
+            // current work dir
+            if (await existsAsync(fileName)) {
+                return path.resolve(fileName);
+            }
+
+            // home dir
+            let filePath = path.join(homedir, fileName);
+            if (await existsAsync(filePath)) {
+                return filePath;
+            }
+
+            return null;
+        }
+
+        // cookie
+        this._cookie = options['--cookie'];
+        if (this._cookie && this._cookie.startsWith('@')) {
+            const path = this._cookie.substr(1);
+            if (!await existsAsync(path)) {
+                return exit(`no such cookie file: <${path}>.`);
+            }
+            this._cookie = await readFileAsync(path, 'utf-8');
+            console.log(`[INFO] load cookie from file <${path}>.`);
+        } else if (!this._cookie) {
+            const path = await resolvePath('doggoo_cookie.txt');
+            if (path) {
+                this._cookie = await readFileAsync(path, 'utf-8');
+                console.log(`[INFO] load default cookie from file <${path}>.`);
+            }
+        }
+
+        // css
+        let cssPath = options['--css'];
+        if (cssPath) {
+            if (cssPath.startsWith('@')) {
+                cssPath = cssPath.substr(1);
+            }
+            if (!await existsAsync(cssPath)) {
+                return exit(`no such css file: <${this._css}>.`);
+            }
+            this._css = path.resolve(cssPath);
+        } else {
+            cssPath = await resolvePath('doggoo_style.css');
+            if (cssPath) {
+                this._css = cssPath;
+                console.log(`[INFO] load default style from file <${cssPath}>.`);
+            }
+        }
     }
 }
 
