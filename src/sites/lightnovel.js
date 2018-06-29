@@ -9,7 +9,6 @@ const bhttp = require("bhttp");
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
-const { MessageError } = require('../err');
 const { getAbsoluteUrl } = require('../utils/url-utils');
 const HtmlHelper = require('../utils/html-helper');
 
@@ -303,7 +302,7 @@ class LightNovelParser extends HandlerBase {
     _checkDom(dom) {
         const messagetext = dom.window.document.querySelector('#messagetext');
         if (messagetext) {
-            throw new MessageError(messagetext.textContent);
+            ioc.use('error')(messagetext.textContent);
         }
     }
 

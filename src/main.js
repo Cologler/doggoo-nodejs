@@ -24,7 +24,6 @@ require('./models/factory');
 const SessionContext = require('./core/session-context');
 const { setup } = require('./generators');
 const sites = require('./sites');
-const { MessageError } = require('./err');
 
 function createRoot(output) {
     if (output) {
@@ -89,10 +88,6 @@ async function main() {
     try {
         await main();
     } catch (error) {
-        if (error instanceof MessageError) {
-            console.error(`[ERROR] ${error.message}`);
-        } else {
-            console.error(error);
-        }
+        console.error(error);
     }
 })();

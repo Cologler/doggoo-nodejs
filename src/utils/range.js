@@ -1,7 +1,6 @@
 'use strict';
 
 const assert = require('assert');
-const { MessageError } = require('../err');
 
 function toRangeNumbers(text) {
     if (/^\d+?$/.test(text)) {
@@ -10,7 +9,7 @@ function toRangeNumbers(text) {
 
     const match2 = text.match(/^(\d+)-(\d+)?$/);
     if (!match2 || (match2[1] || match2[2]) === undefined) {
-        throw new MessageError(`${text} is invalid range args. try input like '1-15'`);
+        use('error')(`<${text}> is invalid range args. try input like '1-15'`);
     }
     assert.strictEqual(match2.length, 3);
     const min = match2[1] ? Number(match2[1]) : null;
