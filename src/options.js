@@ -7,7 +7,6 @@ const { promisify } = require('util');
 const { docopt } = require('docopt');
 const { ioc } = require('@adonisjs/fold');
 
-const { exit } = require('./err');
 const { Range } = require('./utils/range');
 
 const existsAsync = promisify(fs.exists);
@@ -51,11 +50,14 @@ const options = docopt(doc, {
 
 class ApplicationOptions {
     constructor() {
+        const info = ioc.use('info');
+        const error = ioc.use('error');
+
         // range
         const range = options['--range'];
         if (range) {
             this._range = new Range(range);
-            console.log(`[INFO] configured range ${this._range.toString()}.`);
+            info(`configured range ${this._range.toString()}.`);
         } else {
             this._range = null;
         }
@@ -64,11 +66,10 @@ class ApplicationOptions {
         this._limitChars = options['--limit-chars'];
         if (this._limitChars !== null) {
             if (!/\d+/.test(this._limitChars)) {
-                console.log('<limit-chars> must be a number.');
-                process.exit(1);
+                error('<limit-chars> must be a number.');
             }
             this._limitChars = Number(this._limitChars);
-            console.log(`[INFO] configured limit-chars: ${this._limitChars}.`);
+            info(`configured limit-chars: ${this._limitChars}.`);
         } else {
             this._limitChars = 0;
         }
@@ -82,8 +83,7 @@ class ApplicationOptions {
             try {
                 this._headerRegex = new RegExp(this._headerRegex);
             } catch (_) {
-                console.error(`[ERROR] invaild regex pattern: <${this._headerRegex}>.`);
-                process.exit(1);
+                error(`invaild regex pattern: <${this._headerRegex}>.`);
             }
         }
     }
@@ -156,20 +156,23 @@ class ApplicationOptions {
             return null;
         }
 
+        const info = ioc.use('info');
+        const error = ioc.use('error');
+
         // cookie
         this._cookie = options['--cookie'];
         if (this._cookie && this._cookie.startsWith('@')) {
             const path = this._cookie.substr(1);
             if (!await existsAsync(path)) {
-                return exit(`no such cookie file: <${path}>.`);
+                return error(`no such cookie file: <${path}>.`);
             }
             this._cookie = await readFileAsync(path, 'utf-8');
-            console.log(`[INFO] load cookie from file <${path}>.`);
+            info(`load cookie from file <${path}>.`);
         } else if (!this._cookie) {
             const path = await resolvePath('doggoo_cookie.txt');
             if (path) {
                 this._cookie = await readFileAsync(path, 'utf-8');
-                console.log(`[INFO] load default cookie from file <${path}>.`);
+                info(`load default cookie from file <${path}>.`);
             }
         }
 
@@ -180,14 +183,14 @@ class ApplicationOptions {
                 cssPath = cssPath.substr(1);
             }
             if (!await existsAsync(cssPath)) {
-                return exit(`no such css file: <${this._css}>.`);
+                return error(`no such css file: <${this._css}>.`);
             }
             this._css = path.resolve(cssPath);
         } else {
             cssPath = await resolvePath('doggoo_style.css');
             if (cssPath) {
                 this._css = cssPath;
-                console.log(`[INFO] load default style from file <${cssPath}>.`);
+                info(`load default style from file <${cssPath}>.`);
             }
         }
     }

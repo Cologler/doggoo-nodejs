@@ -19,7 +19,7 @@ function setup(context) {
         const format = ioc.use('options').format || 'epub';
         const generatorName = GeneratorMap[format];
         if (!generatorName) {
-            console.log(`[INFO] unknown format: <${format}>. use epub.`);
+            ioc.use('warn')(`unknown format: <${format}>. use epub.`);
         }
         return ioc.use(generatorName || 'epub');
     });

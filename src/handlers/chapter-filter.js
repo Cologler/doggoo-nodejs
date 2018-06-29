@@ -11,7 +11,7 @@ class Filter {
 
         const requireSummary = options.hasFlag('--enable-filter-summary');
 
-        console.log('[INFO] Begin filter ...');
+        ioc.use('info')('begin filter ...');
 
         const userInput = readline.createInterface({
             input: process.stdin,

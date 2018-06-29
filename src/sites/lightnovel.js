@@ -9,7 +9,7 @@ const bhttp = require("bhttp");
 const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
-const { MessageError, exit } = require('../err');
+const { MessageError } = require('../err');
 const { getAbsoluteUrl } = require('../utils/url-utils');
 const HtmlHelper = require('../utils/html-helper');
 
@@ -166,9 +166,9 @@ function createWebClient(options) {
     const cookie = options.cookie;
     if (cookie) {
         headers.cookie = cookie;
-        console.log('[INFO] init http with cookie.');
+        ioc.use('info')('init http with cookie.');
     } else {
-        console.log('[INFO] init http without cookie.');
+        ioc.use('info')('init http without cookie.');
     }
 
     // web client
@@ -292,7 +292,7 @@ class LightNovelParser extends HandlerBase {
             response = await this._http.get(url);
         } catch (error) {
             if (error.name === 'ConnectionTimeoutError') {
-                exit(`timeout when load url ${url}.`);
+                ioc.use('error')(`timeout when load url ${url}.`);
             }
             throw error;
         }
@@ -311,7 +311,7 @@ class LightNovelParser extends HandlerBase {
         try {
             this._parseCore(session, dom, baseUrlString);
         } catch (error) {
-            console.log(`error on ${baseUrlString}`);
+            ioc.use('warn')(`error on ${baseUrlString}`);
             throw error;
         }
     }
@@ -355,7 +355,7 @@ class LightNovelParser extends HandlerBase {
         const content = post.querySelector('.pct .t_f');
         if (content === null) {
             // maybe: 作者被禁止或删除 内容自动屏蔽
-            console.info(`[INFO] post ${post.id} has not content.`);
+            ioc.use('info')(`post ${post.id} has not content.`);
             return;
         }
 

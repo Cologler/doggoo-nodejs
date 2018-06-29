@@ -5,6 +5,8 @@ const PATH = require('path');
 
 const { ioc } = require('@adonisjs/fold');
 
+require('./print');
+
 ioc.singleton('event-emitter', () => {
     const events = require('events');
     return new events.EventEmitter();
@@ -51,15 +53,17 @@ async function main() {
 
     const site = sites.find(z => z.match());
     if (!site) {
-        throw Error(`Unknown source <${options.source}>.`);
+        ioc.use('error')(`Unknown source <${options.source}>.`);
     }
 
     const parser = new site.Parser();
 
-    console.log(`[INFO] Matched parser <${parser.name}>.`);
+    const info = ioc.use('info');
+
+    info(`matched parser <${parser.name}>.`);
 
     const rootDir = createRoot(options.output);
-    console.log(`[INFO] Creating book on ${rootDir} ...`);
+    info(`creating book on ${rootDir} ...`);
     process.chdir(rootDir);
 
     const session = new SessionContext();
@@ -78,7 +82,7 @@ async function main() {
     setup(session);
     await session.run();
 
-    console.log(`[INFO] Done.`);
+    info(`Done.`);
 }
 
 (async function() {

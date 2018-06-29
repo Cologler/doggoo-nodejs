@@ -27,9 +27,9 @@ class ImagesDownloader extends HandlerBase {
     }
 
     async run(context) {
-        console.log(`[INFO] downloading ${this._promises.length} images ...`);
+        ioc.use('info')(`downloading ${this._promises.length} images ...`);
         await Promise.all(this._promises);
-        console.log(`[INFO] download images finished.`);
+        ioc.use('info')(`download images finished.`);
     }
 
     addImage(image) {
@@ -76,8 +76,7 @@ class ImagesDownloader extends HandlerBase {
             response = await promise;
         } catch (error) {
             if (error instanceof bhttp.ResponseTimeoutError) {
-                console.error(`[ERROR] timeout when downloading image <${url}>.`);
-                process.exit(1);
+                ioc.use('error')(`timeout when downloading image <${url}>.`);
             }
             throw error;
         }
