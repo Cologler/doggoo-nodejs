@@ -2,11 +2,14 @@
 
 const PATH = require('path');
 const fs = require('fs');
+const { promisify } = require('util');
 
 const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
 
 const { HandlerBase } = require('./handler');
+
+const writeFileAsync = promisify(fs.writeFile);
 
 const IMAGE_EXT = new Set([
     '.jpg', '.jpeg', '.png', '.bmp', '.gif'
@@ -81,7 +84,7 @@ class ImagesDownloader extends HandlerBase {
             throw error;
         }
 
-        fs.writeFileSync(path, response.body, {
+        await writeFileAsync(path, response.body, {
             encoding: 'binary',
             flag: 'w'
         });
