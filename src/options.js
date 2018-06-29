@@ -164,15 +164,15 @@ class ApplicationOptions {
         if (this._cookie && this._cookie.startsWith('@')) {
             const path = this._cookie.substr(1);
             if (!await existsAsync(path)) {
-                return error(`no such cookie file: <${path}>.`);
+                return error('no such cookie file: <%s>.', path);
             }
             this._cookie = await readFileAsync(path, 'utf-8');
-            info(`load cookie from file <${path}>.`);
+            info('load cookie from file <%s>.', path);
         } else if (!this._cookie) {
             const path = await resolvePath('doggoo_cookie.txt');
             if (path) {
                 this._cookie = await readFileAsync(path, 'utf-8');
-                info(`load default cookie from file <${path}>.`);
+                info('load default cookie from file <%s>.', path);
             }
         }
 
@@ -183,14 +183,14 @@ class ApplicationOptions {
                 cssPath = cssPath.substr(1);
             }
             if (!await existsAsync(cssPath)) {
-                return error(`no such css file: <${this._css}>.`);
+                return error('no such css file: <%s>.', cssPath);
             }
             this._css = path.resolve(cssPath);
         } else {
             cssPath = await resolvePath('doggoo_style.css');
             if (cssPath) {
                 this._css = cssPath;
-                info(`load default style from file <${cssPath}>.`);
+                info('load default style from file <%s>.', cssPath);
             }
         }
     }

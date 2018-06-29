@@ -9,7 +9,7 @@ function toRangeNumbers(text) {
 
     const match2 = text.match(/^(\d+)-(\d+)?$/);
     if (!match2 || (match2[1] || match2[2]) === undefined) {
-        use('error')(`<${text}> is invalid range args. try input like '1-15'`);
+        use('error')(`<%s> is invalid range args. try input like '1-15'`, text);
     }
     assert.strictEqual(match2.length, 3);
     const min = match2[1] ? Number(match2[1]) : null;

@@ -52,17 +52,17 @@ async function main() {
 
     const site = sites.find(z => z.match());
     if (!site) {
-        ioc.use('error')(`Unknown source <${options.source}>.`);
+        ioc.use('error')('unknown source <%s>.', options.source);
     }
 
     const parser = new site.Parser();
 
     const info = ioc.use('info');
 
-    info(`matched parser <${parser.name}>.`);
+    info('matched parser <%s>.', parser.name);
 
     const rootDir = createRoot(options.output);
-    info(`creating book on ${rootDir} ...`);
+    info('creating book on %s ...', rootDir);
     process.chdir(rootDir);
 
     const session = new SessionContext();
