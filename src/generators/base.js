@@ -2,6 +2,8 @@
 
 const os = require('os');
 
+const { ioc } = require('@adonisjs/fold');
+
 /**
  * a simple stringbuilder.
  *
@@ -105,6 +107,8 @@ class Generator {
         // pass
     }
 }
+
+ioc.bind('none-generator', () => new Generator());
 
 module.exports = {
     Generator,

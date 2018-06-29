@@ -11,6 +11,7 @@ const GeneratorMap = {
     'md':       'markdown-generator',
     'txt':      'txt-generator',
     'epub':     'epub-generator',
+    'none':     'none-generator',
 };
 
 function setup(context) {
