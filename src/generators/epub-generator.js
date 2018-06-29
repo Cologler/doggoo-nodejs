@@ -265,6 +265,14 @@ class EpubGenerator extends Generator {
         const appinfo = ioc.use('app-info');
         book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
     }
+
+    setup(context) {
+        if (this.requireImages) {
+            context.addMiddleware(ioc.use('image-downloader'));
+        }
+    }
 }
+
+ioc.bind('epub-generator', () => new EpubGenerator());
 
 module.exports = EpubGenerator;

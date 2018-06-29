@@ -2,42 +2,32 @@
 
 const { ioc } = require('@adonisjs/fold');
 
-const MarkdownGenerator = require('./markdown-generator');
-const TxtGenerator = require('./txt-generator');
-const EpubGenerator = require('./epub-generator');
+require('./markdown-generator');
+require('./txt-generator');
+require('./epub-generator');
 
-function findGenerator(name) {
-    switch (name) {
-        case 'markdown':
-        case 'md':
-        case 'gitbook':
-            return new MarkdownGenerator();
+const GeneratorMap = {
+    'markdown': 'markdown-generator',
+    'md':       'markdown-generator',
+    'txt':      'txt-generator',
+    'epub':     'epub-generator',
+};
 
-        case 'txt':
-            return new TxtGenerator();
-
-        case 'epub':
-            return new EpubGenerator();
-
-        default:
-            return new EpubGenerator();
-    }
-}
-
-function useGenerator(context) {
-    const format = ioc.use('options').format;
-    const generator = findGenerator(format);
+function setup(context) {
     ioc.singleton('generator', () => {
-        return generator;
-    });
-    if (generator instanceof EpubGenerator) {
-        if (generator.requireImages) {
-            context.addMiddleware(ioc.use('image-downloader'));
+        const format = ioc.use('options').format || 'epub';
+        const generatorName = GeneratorMap[format];
+        if (!generatorName) {
+            console.log(`[INFO] unknown format: <${format}>. use epub.`);
         }
-    }
+        return ioc.use(generatorName || 'epub');
+    });
+
+    const generator = ioc.use('generator');
+    generator.setup(context);
     context.addMiddleware(generator);
 }
 
 module.exports = {
-    useGenerator
+    setup
 };

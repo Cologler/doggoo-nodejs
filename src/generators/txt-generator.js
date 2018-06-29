@@ -83,4 +83,6 @@ class TxtGenerator extends Generator {
     }
 }
 
+ioc.bind('txt-generator', () => new TxtGenerator());
+
 module.exports = TxtGenerator;

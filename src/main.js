@@ -20,7 +20,7 @@ require('./handlers/image-downloader');
 require('./models/factory');
 
 const SessionContext = require('./core/session-context');
-const { useGenerator } = require('./generators');
+const { setup } = require('./generators');
 const sites = require('./sites');
 const { MessageError } = require('./err');
 
@@ -75,7 +75,7 @@ async function main() {
     const { Optimizer } = require('./handlers/optimize-composition');
     session.addMiddleware(new Optimizer());
 
-    useGenerator(session);
+    setup(session);
     await session.run();
 
     console.log(`[INFO] Done.`);

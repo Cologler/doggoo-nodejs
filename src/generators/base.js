@@ -98,7 +98,11 @@ class NodeVisitor {
 
 class Generator {
     run(context) {
-        throw new Error('NotImplementedError');
+        // pass
+    }
+
+    setup(context) {
+        // pass
     }
 }
 

@@ -1,7 +1,8 @@
 'use strict';
 
-const os = require('os');
 const fs = require('fs');
+
+const { ioc } = require('@adonisjs/fold');
 
 const HtmlHelper = require('../utils/html-helper');
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
@@ -78,5 +79,7 @@ class MarkdownGenerator extends Generator {
         });
     }
 }
+
+ioc.bind('markdown-generator', () => new MarkdownGenerator());
 
 module.exports = MarkdownGenerator;
