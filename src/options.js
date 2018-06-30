@@ -69,7 +69,7 @@ class ApplicationOptions {
                 error('<limit-chars> must be a number.');
             }
             this._limitChars = Number(this._limitChars);
-            info(`configured limit-chars: ${this._limitChars}.`);
+            info('configured limit-chars: %s.', this._limitChars);
         } else {
             this._limitChars = 0;
         }
