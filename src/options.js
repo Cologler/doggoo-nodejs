@@ -57,7 +57,7 @@ class ApplicationOptions {
         const range = options['--range'];
         if (range) {
             this._range = new Range(range);
-            info(`configured range ${this._range.toString()}.`);
+            info(`configured range %s.`, this._range.toString());
         } else {
             this._range = null;
         }
