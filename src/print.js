@@ -8,7 +8,7 @@ const clc = require('cli-color');
 const ErrorStyle = clc.red.bold;
 const WarnStyle = clc.yellow;
 const InfoStyle = clc.green;
-const VarStyle = clc.blue;
+const VarStyle = clc.blueBright;
 
 function info(message, ...args) {
     args = args.map(z => VarStyle(z).toString());
