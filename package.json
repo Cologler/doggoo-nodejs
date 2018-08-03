@@ -4,8 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "dependencies": {
-    "@adonisjs/fold": "^4.0.8",
-    "async-request": "^1.2.0",
+    "@adonisjs/fold": "^4.0.9",
     "bhttp": "^1.2.4",
     "chardet": "^0.5.0",
     "cli-color": "^1.2.0",
@@ -22,11 +21,12 @@
     "@types/chardet": "^0.5.0",
     "@types/cli-color": "^0.3.29",
     "@types/docopt": "^0.6.31",
-    "@types/node": "^10.5.1",
+    "@types/jsdom": "^11.0.6",
+    "@types/node": "^10.5.2",
     "@types/node-uuid": "0.0.28"
   },
   "scripts": {
-    "compile": "node src\\build-inc & pkg src/main.js -t node9-win -o dist-bin/doggoo"
+    "compile": "node src\\build-inc & pkg src/main.js -t node10-win -o dist-bin/doggoo"
   },
   "author": "cologler",
   "license": "GPLv3"

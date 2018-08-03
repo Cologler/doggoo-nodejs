@@ -2,9 +2,11 @@
 
 const HtmlHelper = require('../utils/html-helper');
 
+
 class Optimizer {
     constructor() {
         this._headerTypes = {}; // headerType map to level.
+        this._headers = [];
     }
 
     async run(context) {
@@ -13,6 +15,12 @@ class Optimizer {
         novel.chapters.forEach((chapter, i) => {
             this.optimizeChapter(chapter, i);
         });
+
+        // print headers
+        const headers = this._headers.map(header => {
+            return '       ' + '  '.repeat(header.level) + header.title;
+        }).join('\n');
+        use('info')('resolved headers:\n%s', headers);
     }
 
     prepareOptimize(novel) {
@@ -53,6 +61,10 @@ class Optimizer {
                 }
                 HtmlHelper.set(item, 'HeaderLevel', hl);
                 chapter.title = item.textContent;
+                this._headers.push({
+                    title: chapter.title,
+                    level: hl,
+                });
                 break;
             }
         }
