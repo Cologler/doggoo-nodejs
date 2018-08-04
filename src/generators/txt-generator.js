@@ -60,9 +60,12 @@ class TxtGenerator extends Generator {
     }
 
     run(context) {
+        const infos = ioc.use('infos');
+        infos.format = 'txt';
+        let text = infos.toString();
+
         const novel = context.novel;
 
-        let text = context.getGenerateMessage('txt');
         text += os.EOL + os.EOL;
         text += novel.chapters.map(z => {
             return new TextNodeVisitor().visitChapter(z).value();

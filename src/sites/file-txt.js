@@ -38,7 +38,7 @@ class TxtFileParser {
 
     async run(context) {
         // hide user info from the generated book.
-        context.src = 'txt file';
+        use('infos').source = 'a txt file';
 
         const options = ioc.use('options');
         const filepath = options.source;

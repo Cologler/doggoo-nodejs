@@ -229,6 +229,9 @@ class EpubGenerator extends Generator {
     }
 
     run(context) {
+        const infos = ioc.use('infos');
+        infos.format = 'epub';
+
         const novel = context.novel;
         const book = this._book;
 
@@ -237,7 +240,7 @@ class EpubGenerator extends Generator {
 
         book.title = title;
         book.author = novel.author || 'AUTHOR';
-        book.summary = novel.summary || context.getGenerateMessage('epub');
+        book.summary = novel.summary || infos.toString();
         book.UUID = bookUid;
         book.appendMeta(new Publisher('doggoo'));
         this.resolveCover(context);
