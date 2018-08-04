@@ -7,9 +7,8 @@ const { ioc } = require('@adonisjs/fold');
 const { Range } = require('../utils/range');
 
 class Filter {
-    async invoke(context, next) {
-        await this.run(context.state.novel);
-        return await next();
+    invoke(context) {
+        return this.run(context.state.novel);
     }
 
     async run(novel) {

@@ -80,26 +80,26 @@ async function main() {
     process.chdir(rootDir);
 
     const app = new App();
-    app.use((c, n) => {
-        // setup envs
-        c.state.options = options;
-        c.state.novel = new Novel();
-        return n();
-    });
-    app.use(parser);
+    app.flow()
+        .use(c => {
+            // setup envs
+            c.state.options = options;
+            c.state.novel = new Novel();
+        }).use(parser);
 
     const { Filter } = require('./handlers/chapter-filter');
     app.branch(c => c.state.options.hasFlag('--enable-filter'))
+        .flow()
         .use(new Filter());
 
     const { Optimizer } = require('./handlers/optimize-composition');
-    app.use(new Optimizer());
+    app.flow().use(new Optimizer());
 
     const generator = ioc.use('generator');
     if (generator.requireImages) {
-        app.use(ioc.use('image-downloader'));
+        app.flow().use(ioc.use('image-downloader'));
     }
-    app.use(generator);
+    app.flow().use(generator);
 
     await app.run();
     info(`Done.`);

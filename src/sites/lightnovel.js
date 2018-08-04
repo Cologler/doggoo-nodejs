@@ -233,14 +233,8 @@ class LightNovelParser {
         }
     }
 
-    async run(context) {
-        const novel = context.novel;
-        return this._buildNovel(novel);
-    }
-
-    async invoke(context, next) {
-        await this._buildNovel(context.state.novel);
-        return await next();
+    invoke(context) {
+        return this._buildNovel(context.state.novel);
     }
 
     async _buildNovel(novel) {

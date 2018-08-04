@@ -99,8 +99,7 @@ class NodeVisitor {
 }
 
 class Generator {
-    invoke(context, next) {
-        return next();
+    invoke() {
     }
 }
 

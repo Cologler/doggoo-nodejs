@@ -9,9 +9,8 @@ class Optimizer {
         this._headers = [];
     }
 
-    invoke(context, next) {
+    invoke(context) {
         this.run(context.state.novel);
-        return next();
     }
 
     run(novel) {

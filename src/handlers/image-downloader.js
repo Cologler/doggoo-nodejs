@@ -26,12 +26,7 @@ class ImagesDownloader {
         }
     }
 
-    async invoke(_, next) {
-        await this.run();
-        return await next();
-    }
-
-    async run() {
+    async invoke() {
         ioc.use('info')('downloading %s images ...', this._promises.length);
         await Promise.all(this._promises);
         ioc.use('info')(`download images finished.`);

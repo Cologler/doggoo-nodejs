@@ -59,9 +59,8 @@ class TxtGenerator extends Generator {
         super();
     }
 
-    async invoke(context, next) {
-        await this.run(context.state.novel);
-        return await next();
+    invoke(context) {
+        return this.run(context.state.novel);
     }
 
     run(novel) {
