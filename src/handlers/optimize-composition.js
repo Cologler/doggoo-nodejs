@@ -22,7 +22,7 @@ class Optimizer {
 
         // print headers
         const headers = this._headers.map(header => {
-            return '       ' + '  '.repeat(header.level) + header.title;
+            return ' '.repeat(header.level * 2 + 7) + header.title;
         }).join('\n');
         use('info')('resolved headers:\n%s', headers);
     }
