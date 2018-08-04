@@ -55,6 +55,8 @@ async function main() {
         ioc.use('error')('unknown source <%s>.', options.source);
     }
 
+    require('./components/text-converter').setup();
+
     const parser = new site.Parser();
 
     const info = ioc.use('info');

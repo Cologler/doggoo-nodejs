@@ -21,6 +21,7 @@ class NodeVisitor {
     constructor(context) {
         this._context = context;
         this._visitInnerTagNames = new Set();
+        this._textConverter = use('text-converter');
     }
 
     addVisitInnerTagName(tagName) {
@@ -44,7 +45,7 @@ class NodeVisitor {
     }
 
     visitTextNode(context) {
-        const t = this._context.cc(context.node.textContent);
+        const t = this._textConverter.convert(context.node.textContent);
         switch (context.node.parentNode.tagName) {
             case 'A':
                 context.chapter.addLink(context.node.parentNode.href, t);
@@ -80,8 +81,8 @@ class NodeVisitor {
 
             case 'P':
             case 'FONT':
-            case 'STRONG':
-            case 'STRIKE':
+            case 'STRONG': // 粗体
+            case 'STRIKE': // 文字删除线
             case 'I':
                 this.visitInner(context);
                 break;

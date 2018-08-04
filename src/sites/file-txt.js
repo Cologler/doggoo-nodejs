@@ -27,6 +27,7 @@ class TxtFileParser {
     constructor() {
         /** @type {Chapter[]} */
         this._chapters = [];
+        this._textConverter = ioc.use('text-converter');
     }
 
     createChapter() {
@@ -57,7 +58,7 @@ class TxtFileParser {
 
         let chapter = null;
         for (const line of text.split(/\n/g)) {
-            const t = context.cc(line);
+            const t = this._textConverter.convert(line);
 
             const headerMatch = line.match(headerRegex);
             if (chapter === null || headerMatch) {
