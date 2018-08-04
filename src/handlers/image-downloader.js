@@ -93,6 +93,10 @@ class ImagesDownloader extends HandlerBase {
     getFileInfo(url) {
         return this._results[url];
     }
+
+    getAllFileInfos() {
+        return this._results;
+    }
 }
 
 ioc.singleton('image-downloader', () => {

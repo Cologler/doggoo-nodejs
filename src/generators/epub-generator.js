@@ -139,9 +139,7 @@ class EpubNodeVisitor extends NodeVisitor {
 
         if (this._context.requireImages) {
             if (item.imageIndex === this.coverIndex || url === this.coverIndex) {
-                this.book.addCoverImage(fileinfo.path);
-            } else {
-                this.book.addAsset(fileinfo.path);
+                this._context.addCoverImage(fileinfo);
             }
         }
 
@@ -183,6 +181,7 @@ class EpubGenerator extends Generator {
     constructor () {
         super();
         this._book = new EpubBuilder();
+        this._assetsPaths = new Set();
 
         /** @type {string|Number} */
         this._cover = 0;
@@ -228,6 +227,20 @@ class EpubGenerator extends Generator {
         }
     }
 
+    addCoverImage(fileinfo) {
+        if (!this._assetsPaths.has(fileinfo.path)) {
+            this._assetsPaths.add(fileinfo.path);
+            this._book.addCoverImage(fileinfo.path);
+        }
+    }
+
+    addAsset(fileinfo) {
+        if (!this._assetsPaths.has(fileinfo.path)) {
+            this._assetsPaths.add(fileinfo.path);
+            this._book.addAsset(fileinfo.path);
+        }
+    }
+
     run(context) {
         const infos = ioc.use('infos');
         infos.format = 'epub';
@@ -256,6 +269,10 @@ class EpubGenerator extends Generator {
             doc.html = text;
             book.addAsset(doc);
         });
+
+        if (this.requireImages) {
+            Object.values(this.imageDownloader.getAllFileInfos()).forEach(z => this.addAsset(z));
+        }
 
         const tocBuilder = book.TocBuilder = new TocBuilder();
         this.NavPointsTable.forEach(z => tocBuilder.addNavPoint(z));
