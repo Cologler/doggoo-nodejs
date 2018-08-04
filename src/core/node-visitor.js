@@ -18,8 +18,7 @@ class ChapterContext {
 }
 
 class NodeVisitor {
-    constructor(context) {
-        this._context = context;
+    constructor() {
         this._visitInnerTagNames = new Set();
         this._textConverter = use('text-converter');
     }

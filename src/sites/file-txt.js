@@ -37,12 +37,21 @@ class TxtFileParser {
     }
 
     async run(context) {
+        const novel = context.novel;
+        return this._buildNovel(novel);
+    }
+
+    async invoke(context, next) {
+        await this._buildNovel(context.state.novel);
+        return await next();
+    }
+
+    async _buildNovel(novel) {
         // hide user info from the generated book.
         use('infos').source = 'a txt file';
 
         const options = ioc.use('options');
         const filepath = options.source;
-        const novel = context.novel;
         /** @type {RegExp} */
         const headerRegex = options.headerRegex || /^第.+([章节话話])/;
 

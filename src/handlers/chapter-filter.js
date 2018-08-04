@@ -5,9 +5,13 @@ const readline = require('readline');
 const { ioc } = require('@adonisjs/fold');
 
 class Filter {
-    async run(context) {
+    async invoke(context, next) {
+        await this.run(context.state.novel);
+        return await next();
+    }
+
+    async run(novel) {
         const options = ioc.use('options');
-        const novel = context.novel;
 
         const requireSummary = options.hasFlag('--enable-filter-summary');
 

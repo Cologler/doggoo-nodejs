@@ -4,7 +4,9 @@ const fs = require('fs');
 const PATH = require('path');
 
 const { ioc } = require('@adonisjs/fold');
+const { App } = require('anyflow');
 
+const { Novel } = require('./models/novel');
 require('./print');
 
 ioc.singleton('event-emitter', () => {
@@ -21,8 +23,6 @@ require('./options');
 require('./handlers/image-downloader');
 require('./models/factory');
 
-const SessionContext = require('./core/session-context');
-const { setup } = require('./generators');
 const sites = require('./sites');
 
 function createRoot(output) {
@@ -67,6 +67,7 @@ async function main() {
     }
 
     require('./components/text-converter').setup();
+    require('./generators').setup();
 
     const parser = new site.Parser();
 
@@ -78,22 +79,29 @@ async function main() {
     info('creating book on %s ...', rootDir);
     process.chdir(rootDir);
 
-    const session = new SessionContext();
-    ioc.singleton('context', () => session);
+    const app = new App();
+    app.use((c, n) => {
+        // setup envs
+        c.state.options = options;
+        c.state.novel = new Novel();
+        return n();
+    });
+    app.use(parser);
 
-    session.addMiddleware(parser);
-
-    if (options.hasFlag('--enable-filter')) {
-        const { Filter } = require('./handlers/chapter-filter');
-        session.addMiddleware(new Filter());
-    }
+    const { Filter } = require('./handlers/chapter-filter');
+    app.branch(c => c.state.options.hasFlag('--enable-filter'))
+        .use(new Filter());
 
     const { Optimizer } = require('./handlers/optimize-composition');
-    session.addMiddleware(new Optimizer());
+    app.use(new Optimizer());
 
-    setup(session);
-    await session.run();
+    const generator = ioc.use('generator');
+    if (generator.requireImages) {
+        app.use(ioc.use('image-downloader'));
+    }
+    app.use(generator);
 
+    await app.run();
     info(`Done.`);
 }
 

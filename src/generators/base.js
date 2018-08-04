@@ -99,12 +99,8 @@ class NodeVisitor {
 }
 
 class Generator {
-    run(context) {
-        // pass
-    }
-
-    setup(context) {
-        // pass
+    invoke(context, next) {
+        return next();
     }
 }
 

@@ -59,12 +59,15 @@ class TxtGenerator extends Generator {
         super();
     }
 
-    run(context) {
+    async invoke(context, next) {
+        await this.run(context.state.novel);
+        return await next();
+    }
+
+    run(novel) {
         const infos = ioc.use('infos');
         infos.format = 'txt';
         let text = infos.toString();
-
-        const novel = context.novel;
 
         text += os.EOL + os.EOL;
         text += novel.chapters.map(z => {

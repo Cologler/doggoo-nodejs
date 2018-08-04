@@ -14,7 +14,7 @@ const GeneratorMap = {
     'none':     'none-generator',
 };
 
-function setup(context) {
+function setup() {
     ioc.singleton('generator', () => {
         const format = ioc.use('options').format || 'epub';
         const generatorName = GeneratorMap[format];
@@ -23,10 +23,6 @@ function setup(context) {
         }
         return ioc.use(generatorName || 'epub');
     });
-
-    const generator = ioc.use('generator');
-    generator.setup(context);
-    context.addMiddleware(generator);
 }
 
 module.exports = {

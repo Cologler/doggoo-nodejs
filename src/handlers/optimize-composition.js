@@ -9,8 +9,12 @@ class Optimizer {
         this._headers = [];
     }
 
-    async run(context) {
-        const novel = context.novel;
+    invoke(context, next) {
+        this.run(context.state.novel);
+        return next();
+    }
+
+    run(novel) {
         this.prepareOptimize(novel);
         novel.chapters.forEach((chapter, i) => {
             this.optimizeChapter(chapter, i);

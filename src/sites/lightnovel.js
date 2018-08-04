@@ -6,7 +6,6 @@ const { ioc } = require('@adonisjs/fold');
 const jsdom = require('jsdom');
 const bhttp = require("bhttp");
 
-const { HandlerBase } = require('../handlers/handler');
 const { Chapter } = require('../models/sections');
 const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
 const { getAbsoluteUrl } = require('../utils/url-utils');
@@ -178,9 +177,8 @@ function createWebClient(options) {
     return http;
 }
 
-class LightNovelParser extends HandlerBase {
+class LightNovelParser {
     constructor() {
-        super();
         this._options = ioc.use('options');
         this._range = this._options.range;
         this._url = LightNovelUrl.parse(this._options.source);
@@ -235,8 +233,17 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    async run(session) {
+    async run(context) {
+        const novel = context.novel;
+        return this._buildNovel(novel);
+    }
 
+    async invoke(context, next) {
+        await this._buildNovel(context.state.novel);
+        return await next();
+    }
+
+    async _buildNovel(novel) {
         /** @type {Promise<jsdom.JSDOM>[]} */
         const asyncDoms = [];
         const urls = [];
@@ -259,10 +266,8 @@ class LightNovelParser extends HandlerBase {
             const url = urls[i];
             const asyncDom = asyncDoms[i];
             const dom = await asyncDom;
-            this._parse(session, dom, url);
+            this._parse(dom, url);
         }
-
-        const novel = session.novel;
 
         // add resolved chapters to novel.
         this._chapters.forEach(chapter => {
@@ -306,9 +311,9 @@ class LightNovelParser extends HandlerBase {
         }
     }
 
-    _parse(session, dom, baseUrlString) {
+    _parse(dom, baseUrlString) {
         try {
-            this._parseCore(session, dom, baseUrlString);
+            this._parseCore(dom, baseUrlString);
         } catch (error) {
             ioc.use('warn')(`error on ${baseUrlString}`);
             throw error;
@@ -323,7 +328,7 @@ class LightNovelParser extends HandlerBase {
      * @param {string} baseUrlString
      * @memberof LightNovelParser
      */
-    _parseCore(session, dom, baseUrlString) {
+    _parseCore(dom, baseUrlString) {
         const window = dom.window;
         const document = window.document;
 
@@ -335,13 +340,13 @@ class LightNovelParser extends HandlerBase {
         const posts = Array.from(window.document.querySelectorAll('#postlist .plhin'));
         posts.forEach(post => {
             this._parsePost({
-                session, window, post, baseUrlString
+                window, post, baseUrlString
             });
         });
     }
 
     _parsePost(options) {
-        const { session, window, post, baseUrlString } = options;
+        const { window, post, baseUrlString } = options;
 
         if (this._range) {
             const postIndex = post.querySelector('.plc .pi strong a em').textContent;
@@ -373,7 +378,7 @@ class LightNovelParser extends HandlerBase {
         });
 
         // parse chapter content
-        const visitor = new NodeVisitor(session);
+        const visitor = new NodeVisitor();
         visitor.addVisitInnerTagName('IGNORE_JS_OP');
 
         const chapter = new Chapter();

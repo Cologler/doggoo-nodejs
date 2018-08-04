@@ -217,8 +217,8 @@ class EpubGenerator extends Generator {
         return this._downloader = this._downloader || ioc.use('image-downloader');
     }
 
-    resolveCover(context) {
-        const coverIndex = context.appopt.coverIndex;
+    resolveCover() {
+        const coverIndex = ioc.use('options').coverIndex;
         if (coverIndex) {
             const index = Number(coverIndex);
             if (!isNaN(index)) {
@@ -241,11 +241,15 @@ class EpubGenerator extends Generator {
         }
     }
 
-    run(context) {
+    async invoke(context, next) {
+        await this.run(context.state.novel);
+        return await next();
+    }
+
+    run(novel) {
         const infos = ioc.use('infos');
         infos.format = 'epub';
 
-        const novel = context.novel;
         const book = this._book;
 
         let title = novel.titleOrDefault;
@@ -256,7 +260,7 @@ class EpubGenerator extends Generator {
         book.summary = novel.summary || infos.toString();
         book.UUID = bookUid;
         book.appendMeta(new Publisher('doggoo'));
-        this.resolveCover(context);
+        this.resolveCover();
         if (this.css) {
             book.addAsset(new FileRefAsset(this.css, STYLE_NAME));
         }
@@ -284,12 +288,6 @@ class EpubGenerator extends Generator {
         }
         const appinfo = ioc.use('app-info');
         book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
-    }
-
-    setup(context) {
-        if (this.requireImages) {
-            context.addMiddleware(ioc.use('image-downloader'));
-        }
     }
 }
 

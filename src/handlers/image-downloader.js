@@ -7,17 +7,14 @@ const { promisify } = require('util');
 const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
 
-const { HandlerBase } = require('./handler');
-
 const writeFileAsync = promisify(fs.writeFile);
 
 const IMAGE_EXT = new Set([
     '.jpg', '.jpeg', '.png', '.bmp', '.gif'
 ]);
 
-class ImagesDownloader extends HandlerBase {
+class ImagesDownloader {
     constructor() {
-        super();
         this._promises = [];
         this._results = {}; // map as <url:object>
 
@@ -29,7 +26,12 @@ class ImagesDownloader extends HandlerBase {
         }
     }
 
-    async run(context) {
+    async invoke(_, next) {
+        await this.run();
+        return await next();
+    }
+
+    async run() {
         ioc.use('info')('downloading %s images ...', this._promises.length);
         await Promise.all(this._promises);
         ioc.use('info')(`download images finished.`);

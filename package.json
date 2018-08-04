@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "dependencies": {
     "@adonisjs/fold": "^4.0.9",
+    "anyflow": "^0.2.0",
     "bhttp": "^1.2.4",
     "chardet": "^0.5.0",
     "cli-color": "^1.2.0",

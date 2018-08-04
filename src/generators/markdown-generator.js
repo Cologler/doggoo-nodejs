@@ -61,8 +61,12 @@ class MarkdownNodeVisitor extends NodeVisitor {
 }
 
 class MarkdownGenerator extends Generator {
-    run(context) {
-        const novel = context.novel;
+    async invoke(context, next) {
+        await this.run(context.state.novel);
+        return await next();
+    }
+
+    run(novel) {
         const w = novel.chapters.length.toString().length;
         novel.chapters.forEach((z, i) => {
             const text = new MarkdownNodeVisitor().visitChapter(z).value();
