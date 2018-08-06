@@ -140,6 +140,8 @@ class EpubNodeVisitor extends NodeVisitor {
         if (this._context.requireImages) {
             if (item.imageIndex === this.coverIndex || url === this.coverIndex) {
                 this._context.addCoverImage(fileinfo);
+            } else {
+                this._context.addAsset(fileinfo);
             }
         }
 
@@ -182,6 +184,7 @@ class EpubGenerator extends Generator {
         super();
         this._book = new EpubBuilder();
         this._assetsPaths = new Set();
+        this._assets = new Map();
 
         /** @type {string|Number} */
         this._cover = 0;
@@ -228,17 +231,23 @@ class EpubGenerator extends Generator {
     }
 
     addCoverImage(fileinfo) {
-        if (!this._assetsPaths.has(fileinfo.path)) {
-            this._assetsPaths.add(fileinfo.path);
-            this._book.addCoverImage(fileinfo.path);
-        }
+        this.addAsset(fileinfo).type = 'cover';
     }
 
     addAsset(fileinfo) {
-        if (!this._assetsPaths.has(fileinfo.path)) {
-            this._assetsPaths.add(fileinfo.path);
-            this._book.addAsset(fileinfo.path);
+        let asset = null;
+
+        if (this._assets.has(fileinfo.path)) {
+            asset = this._assets.get(fileinfo.path);
+        } else {
+            this._assets.set(fileinfo.path, asset = {
+                type: 'file',
+                file: fileinfo,
+                path: fileinfo.path,
+            });
         }
+
+        return asset;
     }
 
     invoke(context) {
@@ -274,7 +283,16 @@ class EpubGenerator extends Generator {
         });
 
         if (this.requireImages) {
-            Object.values(this.imageDownloader.getAllFileInfos()).forEach(z => this.addAsset(z));
+            this._assets.forEach(value => {
+                if (value.type === 'cover') {
+                    this._book.addCoverImage(value.path);
+                }
+            });
+            this._assets.forEach(value => {
+                if (value.type === 'file') {
+                    this._book.addAsset(value.path);
+                }
+            });
         }
 
         const tocBuilder = book.TocBuilder = new TocBuilder();
