@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
+const iconv = require('iconv-lite');
 
 const { ioc } = require('@adonisjs/fold');
 
@@ -56,7 +57,10 @@ class TxtFileParser {
 
         const encoding = await detectFileAsync(filepath);
         /** @type {string} */
-        let text = await readFileAsync(filepath, encoding);
+        const buffer = await readFileAsync(filepath, {
+            encoding: 'binary'
+        });
+        let text = iconv.decode(buffer, encoding);
         text = text.replace(/\r/g, '');
 
         /*
