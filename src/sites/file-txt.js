@@ -57,9 +57,9 @@ class TxtFileParser {
 
         const encoding = await detectFileAsync(filepath);
         /** @type {string} */
-        const buffer = await readFileAsync(filepath, {
+        const buffer = Buffer.from(await readFileAsync(filepath, {
             encoding: 'binary'
-        });
+        }), 'binary');
         let text = iconv.decode(buffer, encoding);
         text = text.replace(/\r/g, '');
 
@@ -86,6 +86,8 @@ class TxtFileParser {
                 } else if (/[节]/.test(headerMatch[1])) {
                     headerType = 'section';
                 } else if (/[话話]/.test(headerMatch[1])) {
+                    headerType = 'number';
+                } else {
                     headerType = 'number';
                 }
 
