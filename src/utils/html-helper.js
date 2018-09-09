@@ -1,15 +1,18 @@
 'use strict';
 
+const store = new WeakMap();
+
 const HtmlHelper = {
     get: function(node, propName, def = null) {
         propName = propName.toLowerCase();
-        return node.options && node.options[propName] || def;
+        const options = store.get(node);
+        return options && options[propName] || def;
     },
 
     set: function(node, propName, value) {
         propName = propName.toLowerCase();
-        node.options = node.options || {};
-        node.options[propName] = value;
+        const options = store.get(node) || {};
+        options[propName] = value;
     },
 };
 
