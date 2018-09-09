@@ -92,7 +92,7 @@ class TxtFileParser {
                 }
 
                 if (headerType) {
-                    HtmlHelper.set(textNode, 'HeaderType', headerType);
+                    HtmlHelper.set(textNode, HtmlHelper.PROP_HEADER_TYPE, headerType);
                 }
             }
 

@@ -7,6 +7,8 @@ const { promisify } = require('util');
 const { ioc } = require('@adonisjs/fold');
 const bhttp = require("bhttp");
 
+const HtmlHelper = require('../utils/html-helper');
+
 const writeFileAsync = promisify(fs.writeFile);
 
 const IMAGE_EXT = new Set([
@@ -52,7 +54,7 @@ class ImagesDownloader {
      * @memberof ImagesDownloader
      */
     async onImage(root, index, img) {
-        const url = img.getAttribute('raw-url');
+        const url = HtmlHelper.get(img, HtmlHelper.PROP_RAW_URL);
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
         if (!IMAGE_EXT.has(ext)) {
             ext = '.jpg';

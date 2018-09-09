@@ -85,7 +85,7 @@ class EpubNodeVisitor extends NodeVisitor {
         return super.visitChapter(chapter);
     }
 
-    onLineBreak(item) {
+    onLineBreak() {
         // ignore
     }
 
@@ -98,7 +98,7 @@ class EpubNodeVisitor extends NodeVisitor {
     onTextElement(item) {
         let el = null;
         /** @type {number} */
-        const hl = HtmlHelper.get(item, 'HeaderLevel');
+        const hl = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_LEVEL);
         if (hl !== null) {
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
@@ -134,7 +134,7 @@ class EpubNodeVisitor extends NodeVisitor {
      * @memberof NodeVisitor
      */
     onImageElement(item) {
-        const url = item.getAttribute('raw-url');
+        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
         const fileinfo = this._context.imageDownloader.getFileInfo(url);
 
         if (this._context.requireImages) {

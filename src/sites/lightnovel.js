@@ -277,7 +277,7 @@ class LightNovelParser {
             for (const item of chapter.contents) {
                 if (item.tagName === 'P') {
                     const ht = index === 0 ? 'title' : 'chapter';
-                    HtmlHelper.set(item, 'HeaderType', ht);
+                    HtmlHelper.set(item, HtmlHelper.PROP_HEADER_TYPE, ht);
                     break;
                 }
             }

@@ -25,7 +25,7 @@ class MarkdownNodeVisitor extends NodeVisitor {
      */
     onTextElement(item) {
         let text = item.textContent;
-        const hl = HtmlHelper.get(item, 'HeaderLevel');
+        const hl = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_LEVEL);
         if (hl !== null) {
             text = '#'.repeat(hl) + ' ' + text;
         }
@@ -39,7 +39,7 @@ class MarkdownNodeVisitor extends NodeVisitor {
      * @memberof NodeVisitor
      */
     onImageElement(item) {
-        const url = item.getAttribute('raw-url');
+        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
         this._builder.append(`![](${url})`).appendLineBreak();
     }
 

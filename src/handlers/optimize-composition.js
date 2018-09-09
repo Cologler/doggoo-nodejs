@@ -32,7 +32,7 @@ class Optimizer {
         for (const chapter of novel.chapters) {
             for (const item of chapter.contents) {
                 if (item.tagName === 'P') {
-                    const ht = HtmlHelper.get(item, 'HeaderType');
+                    const ht = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_TYPE);
                     if (ht !== null) {
                         headerTypes.add(ht);
                     }
@@ -55,14 +55,14 @@ class Optimizer {
         for (const item of chapter.contents) {
             if (item.tagName === 'P') {
                 let hl = 1;
-                const ht = HtmlHelper.get(item, 'HeaderType');
+                const ht = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_TYPE);
                 if (ht !== null) {
                     hl += this._headerTypes[ht];
                 }
                 if (hl > 6) {
                     hl = 6; // max header is h6.
                 }
-                HtmlHelper.set(item, 'HeaderLevel', hl);
+                HtmlHelper.set(item, HtmlHelper.PROP_HEADER_LEVEL, hl);
                 chapter.title = item.textContent;
                 this._headers.push({
                     title: chapter.title,

@@ -6,6 +6,7 @@ const fs = require('fs');
 const { ioc } = require('@adonisjs/fold');
 const isInvalid = require('is-invalid-path');
 
+const HtmlHelper = require('../utils/html-helper');
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
 
 class TextNodeVisitor extends NodeVisitor {
@@ -35,7 +36,7 @@ class TextNodeVisitor extends NodeVisitor {
      * @memberof NodeVisitor
      */
     onImageElement(item) {
-        const url = item.getAttribute('raw-url');
+        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
         this._builder.append(`<image ${url}>`);
     }
 

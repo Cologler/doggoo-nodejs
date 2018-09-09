@@ -2,6 +2,8 @@
 
 const { ioc } = require('@adonisjs/fold');
 
+const HtmlHelper = require('../utils/html-helper');
+
 class ElementFactory {
     constructor() {
         this._eventEmitter = ioc.use('event-emitter');
@@ -28,7 +30,7 @@ class ElementFactory {
 
     createImage(url) {
         const node = this._document.createElement('img');
-        node.setAttribute('raw-url', url);
+        HtmlHelper.set(node, HtmlHelper.PROP_RAW_URL, url);
         node.imageIndex = this._imageIndex;
         this._imageIndex++;
         this._eventEmitter.emit('add-image', this, {

@@ -14,6 +14,10 @@ const HtmlHelper = {
         const options = store.get(node) || {};
         options[propName] = value;
     },
+
+    PROP_RAW_URL: Symbol('raw-url'),
+    PROP_HEADER_TYPE: Symbol('header-type'),
+    PROP_HEADER_LEVEL: Symbol('header-level'),
 };
 
 module.exports = HtmlHelper;
