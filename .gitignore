@@ -57,6 +57,6 @@ typings/
 # dotenv environment variables file
 .env
 
-dist-bin/
+dist*/
 src/doggoo_cookie.txt
 src/doggoo_style.css
