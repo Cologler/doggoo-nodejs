@@ -1,13 +1,19 @@
 'use strict';
 
-const { ioc } = require('@adonisjs/fold');
 const uuid = require('uuid/v4');
 const { JSDOM } = require('jsdom');
 const { parse } = require('parse5');
 const { serializeToString } = require('xmlserializer');
 const isInvalid = require('is-invalid-path');
+import { ioc } from "anyioc";
 
-const HtmlHelper = require('../utils/html-helper');
+import { Chapter } from "../models/sections";
+import { AppOptions } from '../options';
+import { FileInfo } from '../handlers/image-downloader';
+import { DoggooFlowContext, InfoBuilder, AppInfo } from "../doggoo";
+import { Novel } from '../models/novel';
+
+const { getAttr, AttrSymbols } = require('../utils/attrs');
 const { Generator, NodeVisitor } = require('./base');
 const { EpubBuilder } = require('epub-builder/dist/builder.js');
 const { Publisher } = require('epub-builder/dist/api.js');
@@ -39,13 +45,7 @@ const STYLE_NAME = 'style.css';
  */
 
 class EpubNodeVisitor extends NodeVisitor {
-    /**
-     *
-     * Creates an instance of EpubNodeVisitor.
-     * @param {EpubGenerator} context
-     * @memberof EpubNodeVisitor
-     */
-    constructor(context, filename) {
+    constructor(context: EpubGenerator, filename: string) {
         super();
         this._context = context;
         this._filename = filename;
@@ -66,7 +66,7 @@ class EpubNodeVisitor extends NodeVisitor {
         return this._context.coverIndex;
     }
 
-    visitChapter(chapter) {
+    visitChapter(chapter: Chapter) {
         // title
         const chapterTitle = chapter.title || '';
         const titleEl = this._document.createElement('title');
@@ -74,7 +74,7 @@ class EpubNodeVisitor extends NodeVisitor {
         this._document.head.appendChild(titleEl);
 
         // css
-        if (this._context.css) {
+        if (this._context.cssPath) {
             const styleEl = this._document.createElement('link');
             styleEl.type = 'text/css';
             styleEl.rel = 'stylesheet';
@@ -89,16 +89,10 @@ class EpubNodeVisitor extends NodeVisitor {
         // ignore
     }
 
-    /**
-     *
-     *
-     * @param {HTMLParagraphElement} item
-     * @memberof NodeVisitor
-     */
-    onTextElement(item) {
+    onTextElement(item: HTMLParagraphElement) {
         let el = null;
         /** @type {number} */
-        const hl = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_LEVEL);
+        const hl = getAttr(item, AttrSymbols.HeaderLevel);
         if (hl !== null) {
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
@@ -127,18 +121,12 @@ class EpubNodeVisitor extends NodeVisitor {
         this._rootElement.appendChild(el);
     }
 
-    /**
-     *
-     *
-     * @param {HTMLImageElement} item
-     * @memberof NodeVisitor
-     */
-    onImageElement(item) {
-        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
+    onImageElement(item: HTMLImageElement) {
+        const url = getAttr(item, AttrSymbols.RawUrl);
         const fileinfo = this._context.imageDownloader.getFileInfo(url);
 
         if (this._context.requireImages) {
-            if (item.imageIndex === this.coverIndex || url === this.coverIndex) {
+            if (getAttr(item, AttrSymbols.ImageIndex) === this.coverIndex || url === this.coverIndex) {
                 this._context.addCoverImage(fileinfo);
             } else {
                 this._context.addAsset(fileinfo);
@@ -168,7 +156,7 @@ class EpubNodeVisitor extends NodeVisitor {
      * @param {HTMLAnchorElement} item
      * @memberof NodeVisitor
      */
-    onLinkElement(item) {
+    onLinkElement(item: HTMLAnchorElement) {
         this._rootElement.appendChild(item);;
     }
 
@@ -179,25 +167,32 @@ class EpubNodeVisitor extends NodeVisitor {
     }
 }
 
-class EpubGenerator extends Generator {
+type AssetType = 'file' | 'cover';
+
+type AssetInfo = {
+    type: AssetType,
+    file: FileInfo,
+    path: string,
+}
+
+export class EpubGenerator extends Generator {
+    private _options: AppOptions;
+    private _assets: Map<string, AssetInfo> = new Map();
+    public NavPointsTable: Array<any> = [];
+    public PlayOrder: number = 0;
+
     constructor () {
         super();
         this._book = new EpubBuilder();
         this._assetsPaths = new Set();
-        this._assets = new Map();
 
         /** @type {string|Number} */
         this._cover = 0;
         this._imageIndex = 0;
 
-        const options = ioc.use('options');
-        this._hasImages = !options.noImages;
-        this._css = options.css;
-
-        /** @type {NavPoint[]} */
-        this.NavPointsTable = [];
-        /** @type {number} */
-        this.PlayOrder = 0;
+        this._options = ioc.getRequired<AppOptions>(AppOptions);
+        this._hasImages = !this._options.noImages;
+        this._cssPath = this._options.cssPath;
     }
 
     get requireImages() {
@@ -212,16 +207,16 @@ class EpubGenerator extends Generator {
         return this._cover;
     }
 
-    get css() {
-        return this._css;
+    get cssPath() {
+        return this._cssPath;
     }
 
     get imageDownloader() {
-        return this._downloader = this._downloader || ioc.use('image-downloader');
+        return this._downloader = this._downloader || ioc.getRequired('image-downloader');
     }
 
     resolveCover() {
-        const coverIndex = ioc.use('options').coverIndex;
+        const coverIndex = this._options.coverIndex;
         if (coverIndex) {
             const index = Number(coverIndex);
             if (!isNaN(index)) {
@@ -230,16 +225,14 @@ class EpubGenerator extends Generator {
         }
     }
 
-    addCoverImage(fileinfo) {
+    addCoverImage(fileinfo: FileInfo) {
         this.addAsset(fileinfo).type = 'cover';
     }
 
-    addAsset(fileinfo) {
-        let asset = null;
+    addAsset(fileinfo: FileInfo): AssetInfo {
+        let asset = this._assets.get(fileinfo.path);
 
-        if (this._assets.has(fileinfo.path)) {
-            asset = this._assets.get(fileinfo.path);
-        } else {
+        if (!asset) {
             this._assets.set(fileinfo.path, asset = {
                 type: 'file',
                 file: fileinfo,
@@ -250,13 +243,13 @@ class EpubGenerator extends Generator {
         return asset;
     }
 
-    invoke(context) {
+    invoke(context: DoggooFlowContext) {
         return this.run(context.state.novel);
     }
 
-    run(novel) {
-        const infos = ioc.use('infos');
-        infos.format = 'epub';
+    run(novel: Novel) {
+        const infoBuilder = ioc.getRequired<InfoBuilder>('info-builder');
+        infoBuilder.format = 'epub';
 
         const book = this._book;
 
@@ -265,12 +258,12 @@ class EpubGenerator extends Generator {
 
         book.title = title;
         book.author = novel.author || 'AUTHOR';
-        book.summary = novel.summary || infos.toString();
+        book.summary = novel.summary || infoBuilder.toString();
         book.UUID = bookUid;
         book.appendMeta(new Publisher('doggoo'));
         this.resolveCover();
-        if (this.css) {
-            book.addAsset(new FileRefAsset(this.css, STYLE_NAME));
+        if (this.cssPath) {
+            book.addAsset(new FileRefAsset(this.cssPath, STYLE_NAME));
         }
 
         novel.chapters.forEach((chapter, index) => {
@@ -303,11 +296,9 @@ class EpubGenerator extends Generator {
         if (title.length >= 30 || isInvalid(title)) {
             title = 'book';
         }
-        const appinfo = ioc.use('app-info');
+        const appinfo = ioc.getRequired<AppInfo>('app-info');
         book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
     }
 }
 
-ioc.bind('epub-generator', () => new EpubGenerator());
-
-module.exports = EpubGenerator;
+ioc.registerSingleton('epub-generator', () => new EpubGenerator());

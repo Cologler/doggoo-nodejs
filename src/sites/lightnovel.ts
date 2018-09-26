@@ -1,48 +1,55 @@
 'use strict';
 
-const URL = require('url');
+import URL from 'url';
 
-const { ioc } = require('@adonisjs/fold');
-const jsdom = require('jsdom');
+import jsdom from 'jsdom';
+import { DOMWindow, JSDOM } from 'jsdom';
+import { ioc } from 'anyioc';
 const bhttp = require("bhttp");
 
-const { Chapter } = require('../models/sections');
-const { ChapterContext, NodeVisitor } = require('../core/node-visitor');
-const { getAbsoluteUrl } = require('../utils/url-utils');
-const HtmlHelper = require('../utils/html-helper');
+import { AppOptions } from '../options';
+import { Logger } from '../utils/logger';
+import { Range } from "../utils/range";
+import { Chapter } from '../models/sections';
+import { Novel } from '../models/novel';
+import { ChapterContext, NodeVisitor } from '../core/node-visitor';
+import { getAbsoluteUrl } from '../utils/url-utils';
+import { setAttr, AttrSymbols } from '../utils/attrs';
+import { IParser } from '../doggoo';
 
 function match() {
-    const options = ioc.use('options');
-    let url = URL.parse(options.source);
-    if (url && url.hostname === 'www.lightnovel.cn') {
-        // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
-        if ('/forum.php' === url.pathname) {
-            const query = new URL.URLSearchParams(url.query);
-            return query.has('tid');
-        }
+    const options = ioc.getRequired<AppOptions>(AppOptions);
+    if (options.source) {
+        let url = URL.parse(options.source);
+        if (url && url.hostname === 'www.lightnovel.cn') {
+            // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
+            if ('/forum.php' === url.pathname) {
+                const query = new URL.URLSearchParams(<string>url.query);
+                return query.has('tid');
+            }
 
-        // example: `/thread-901251-1-1.html`
-        if (/^\/thread-\d+-1-1.html$/.test(url.pathname)) {
-            return true;
+            // example: `/thread-901251-1-1.html`
+            if (/^\/thread-\d+-1-1.html$/.test(<string>url.pathname)) {
+                return true;
+            }
         }
     }
     return false;
 }
 
 class LightNovelUrl {
-    constructor(url) {
-        this._url = url;
+    constructor(private _url: URL.Url) {
     }
 
     get value() {
         return this._url.href;
     }
 
-    get ThreadId() { throw new Error(); }
+    get ThreadId(): string { throw new Error(); }
 
-    get PageIndex() { throw new Error(); }
+    get PageIndex(): string { throw new Error(); }
 
-    changePageIndex(newPageIndex) { throw new Error(); }
+    changePageIndex(newPageIndex: number): string { throw new Error(); }
 
     /**
      *
@@ -51,7 +58,7 @@ class LightNovelUrl {
      * @param {string} urlString
      * @memberof LightNovelUrl
      */
-    static parse(urlString) {
+    static parse(urlString: string) {
         let url = URL.parse(urlString);
         if (url.pathname === '/forum.php') {
             return new PhpLightNovelUrl(url);
@@ -68,15 +75,13 @@ class LightNovelUrl {
  * @extends {IUrlBuilder}
  */
 class UniLightNovelUrl extends LightNovelUrl {
-    /**
-     * Creates an instance of UniLightNovelUrl.
-     * @param {URL.Url} url
-     * @memberof UniLightNovelUrl
-     */
-    constructor(url) {
+    private _threadId: string;
+    private _pageIndex: string;
+
+    constructor(url: URL.Url) {
         super(url);
 
-        const match = url.pathname.match(/^\/thread-(\d+)-(\d+)-1.html$/);
+        const match = (<string>url.pathname).match(/^\/thread-(\d+)-(\d+)-1.html$/);
         if (match === null) {
             throw Error(`unknown url path <${url.pathname}>`);
         }
@@ -89,7 +94,7 @@ class UniLightNovelUrl extends LightNovelUrl {
 
     get PageIndex() { return this._pageIndex; }
 
-    changePageIndex(newPageIndex) {
+    changePageIndex(newPageIndex: number) {
         return `https://www.lightnovel.cn/thread-${this._threadId}-${newPageIndex}-1.html`;
     }
 }
@@ -101,26 +106,25 @@ class UniLightNovelUrl extends LightNovelUrl {
  * @extends {IUrlBuilder}
  */
 class PhpLightNovelUrl extends LightNovelUrl {
-    /**
-     * Creates an instance of PhpLightNovelUrl.
-     * @param {URL.Url} url
-     * @memberof PhpLightNovelUrl
-     */
-    constructor(url) {
+    private _query: URL.URLSearchParams;
+    private _threadId: string;
+    private _pageIndex: string;
+
+    constructor(url: URL.Url) {
         super(url);
 
-        this._query = new URL.URLSearchParams(url.query);
+        this._query = new URL.URLSearchParams(<string> url.query);
 
-        this._threadId = this._query.get('tid');
-        this._pageIndex = this._query.get('page');
+        this._threadId = <string> this._query.get('tid');
+        this._pageIndex = <string> this._query.get('page');
     }
 
     get ThreadId() { return this._threadId; }
 
     get PageIndex() { return this._pageIndex; }
 
-    changePageIndex(newPageIndex) {
-        const newUrl = new URL.URL(this.value);
+    changePageIndex(newPageIndex: number) {
+        const newUrl = new URL.URL(<string> this.value);
         const param = newUrl.searchParams;
         param.set('page', newPageIndex.toString());
         newUrl.search = param.toString();
@@ -128,26 +132,26 @@ class PhpLightNovelUrl extends LightNovelUrl {
     }
 }
 
-function parseFloor(text) {
+function parseFloor(text: string) {
     text = text.trim();
     const match = text.match(/^(\d+)楼$/);
     if (!match) throw Error(text);
     return Number(match[1]);
 }
 
-function detectTotalPageCount(window) {
+function detectTotalPageCount(window: DOMWindow) {
     const last = window.document.querySelector('a.last');
 
     let href = null;
     if (last) {
-        href = last.href;
+        href = (<HTMLAnchorElement> last).href;
     } else {
         const pgs = Array.from(window.document.querySelectorAll('.pgt .pg a'));
         if (pgs.length > 0) {
             if (!pgs[pgs.length - 1].classList.contains('nxt')) {
                 throw Error();
             }
-            href = pgs[pgs.length - 2].href;
+            href = (<HTMLAnchorElement> pgs[pgs.length - 2]).href;
         }
     }
 
@@ -159,14 +163,16 @@ function detectTotalPageCount(window) {
     }
 }
 
-function createWebClient(options) {
-    const headers = {};
-    const cookie = options.cookie;
+function createWebClient(options: AppOptions) {
+    const logger = ioc.getRequired<Logger>(Logger);
+
+    const headers: any = {};
+    const cookie = options.CookieString;
     if (cookie) {
         headers.cookie = cookie;
-        ioc.use('info')('init http with cookie.');
+        logger.info('init http with cookie.');
     } else {
-        ioc.use('info')('init http without cookie.');
+        logger.info('init http without cookie.');
     }
 
     // web client
@@ -177,16 +183,22 @@ function createWebClient(options) {
     return http;
 }
 
-class LightNovelParser {
-    constructor() {
-        this._options = ioc.use('options');
-        this._range = this._options.range;
-        this._url = LightNovelUrl.parse(this._options.source);
+class LightNovelParser implements IParser {
+    private _options: AppOptions;
+    private _range: Range | null;
+    private _url: LightNovelUrl;
+    private _chapters: Array<Chapter> = [];
+    private _http: any;
+    private _threadSubject: string | null = null;
+    private _logger: Logger;
 
-        /** @type {Chapter[]} */
-        this._chapters = [];
+    constructor() {
+        this._options = ioc.getRequired<AppOptions>(AppOptions);
+        this._logger = ioc.getRequired<Logger>(Logger);
+        this._range = this._options.range;
+        this._url = LightNovelUrl.parse(<string> this._options.source);
+
         this._http = createWebClient(this._options);
-        this._threadSubject = null;
     }
 
     get name() {
@@ -200,7 +212,7 @@ class LightNovelParser {
      * @param {string[]} lines
      * @memberof LightNovelParser
      */
-    buildNovelInfo(novel) {
+    buildNovelInfo(novel: Novel) {
         const firstChapter = novel.chapters[0];
         if (!firstChapter) {
             return;
@@ -233,13 +245,12 @@ class LightNovelParser {
         }
     }
 
-    invoke(context) {
+    invoke(context: any) {
         return this._buildNovel(context.state.novel);
     }
 
-    async _buildNovel(novel) {
-        /** @type {Promise<jsdom.JSDOM>[]} */
-        const asyncDoms = [];
+    async _buildNovel(novel: Novel) {
+        const asyncDoms: Array<Promise<jsdom.JSDOM>> = [];
         const urls = [];
         const firstUrl = this._url.changePageIndex(1);
         urls.push(firstUrl);
@@ -277,20 +288,20 @@ class LightNovelParser {
             for (const item of chapter.contents) {
                 if (item.tagName === 'P') {
                     const ht = index === 0 ? 'title' : 'chapter';
-                    HtmlHelper.set(item, HtmlHelper.PROP_HEADER_TYPE, ht);
+                    setAttr(item, AttrSymbols.HeaderType, ht);
                     break;
                 }
             }
         });
     }
 
-    async _getDomAsync(url) {
+    async _getDomAsync(url: string) {
         let response = null;
         try {
             response = await this._http.get(url);
         } catch (error) {
             if (error.name === 'ConnectionTimeoutError') {
-                ioc.use('error')(`timeout when load url ${url}.`);
+                this._logger.error(`timeout when load url: %s.`, url);
             }
             throw error;
         }
@@ -298,31 +309,23 @@ class LightNovelParser {
         return dom;
     }
 
-    _checkDom(dom) {
+    _checkDom(dom: JSDOM) {
         const messagetext = dom.window.document.querySelector('#messagetext');
         if (messagetext) {
-            ioc.use('error')(messagetext.textContent);
+            this._logger.error(<string>messagetext.textContent);
         }
     }
 
-    _parse(dom, baseUrlString) {
+    _parse(dom: JSDOM, baseUrlString: string) {
         try {
             this._parseCore(dom, baseUrlString);
         } catch (error) {
-            ioc.use('warn')(`error on ${baseUrlString}`);
+            this._logger.warn('error on %s', baseUrlString);
             throw error;
         }
     }
 
-    /**
-     *
-     *
-     * @param {any} session
-     * @param {any} dom
-     * @param {string} baseUrlString
-     * @memberof LightNovelParser
-     */
-    _parseCore(dom, baseUrlString) {
+    _parseCore(dom: JSDOM, baseUrlString: string) {
         const window = dom.window;
         const document = window.document;
 
@@ -339,11 +342,12 @@ class LightNovelParser {
         });
     }
 
-    _parsePost(options) {
+    _parsePost(options: { window: DOMWindow, post: Element, baseUrlString: string }) {
         const { window, post, baseUrlString } = options;
 
         if (this._range) {
-            const postIndex = post.querySelector('.plc .pi strong a em').textContent;
+            const postIndexEl = post.querySelector('.plc .pi strong a em');
+            const postIndex = (<HTMLElement>postIndexEl).textContent;
             const floor = Number(postIndex);
             if (!this._range.in(floor)) {
                 return;
@@ -353,7 +357,7 @@ class LightNovelParser {
         const content = post.querySelector('.pct .t_f');
         if (content === null) {
             // maybe: 作者被禁止或删除 内容自动屏蔽
-            ioc.use('info')(`post ${post.id} has not content.`);
+            this._logger.info('post %s has not content.', post.id);
             return;
         }
 
@@ -378,23 +382,22 @@ class LightNovelParser {
         const chapter = new Chapter();
 
         // some post has header.
-        const pcb = post.querySelector('.plc .pcb');
+        const pcb = <HTMLElement> post.querySelector('.plc .pcb');
         if (pcb.children[0] && pcb.children[0].tagName === 'H2') {
-            chapter.addText(pcb.children[0].textContent);
+            chapter.addText(<string> pcb.children[0].textContent);
             chapter.addLineBreak();
         }
 
         // visit post content
-        const chapterContext = new ChapterContext(window, chapter);
         content.childNodes.forEach(z => {
-            visitor.visit(chapterContext.createChildNode(z));
+            visitor.visit(new ChapterContext(window, chapter, z));
         });
 
         this._chapters.push(chapter);
     }
 }
 
-module.exports = {
+export default {
     match,
     Parser: LightNovelParser
-};
+}

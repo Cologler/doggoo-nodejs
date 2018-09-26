@@ -1,22 +1,24 @@
-'use strict';
+import readline from 'readline';
 
-const readline = require('readline');
+import { ioc } from 'anyioc';
 
-const { ioc } = require('@adonisjs/fold');
+import { Novel } from "../models/novel";
+import { Logger } from "../utils/logger";
+import { AppOptions } from "../options";
 
-const { Range } = require('../utils/range');
+import { Range } from "../utils/range";
 
-class Filter {
-    invoke(context) {
+export class Filter {
+    invoke(context: any) {
         return this.run(context.state.novel);
     }
 
-    async run(novel) {
-        const options = ioc.use('options');
+    async run(novel: Novel) {
+        const options = ioc.getRequired<AppOptions>(AppOptions);
+        const logger = ioc.getRequired<Logger>(Logger);
 
         const requireSummary = options.hasFlag('--enable-filter-summary');
-
-        ioc.use('info')('begin filter ...');
+        logger.info('begin filter ...');
 
         const userInput = readline.createInterface({
             input: process.stdin,
@@ -36,12 +38,11 @@ class Filter {
                     return `${header} ${texts[0]}`;
                 }
             }).map(z => ' '.repeat(7) + z).join('\n');
-            ioc.use('info')('current chapters:\n%s', chaptersDescInfo);
+            logger.info('current chapters:\n%s', chaptersDescInfo);
 
             console.log('       please input the id (split by `;`) that you want to remove (empty to exit):');
 
-            /** @type {string} */
-            let inputValue = await new Promise(resolve => {
+            let inputValue = await new Promise<string>(resolve => {
                 userInput.on('line', line => {
                     resolve(line);
                 });
@@ -53,7 +54,7 @@ class Filter {
             }
 
             const table = new Set();
-            const ranges = [];
+            const ranges: Array<Range> = [];
             inputValue.split(/;/g).forEach(item => {
                 if (item.includes('-')) {
                     // range
@@ -63,20 +64,16 @@ class Filter {
                 }
             });
 
-            novel.filterChapters((chapter, index) => {
+            novel.filterChapters(<any>((_: any, index: number) => {
                 for (const range of ranges) {
                     if (range.in(index)) {
                         return false;
                     }
                 }
                 return !table.has(index.toString());
-            });
+            }));
         }
 
         userInput.close();
     }
 }
-
-module.exports = {
-    Filter
-};

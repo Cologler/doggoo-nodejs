@@ -1,10 +1,10 @@
-'use strict';
-
 const fs = require('fs');
 
-const { ioc } = require('@adonisjs/fold');
+import { ioc } from "anyioc";
 
-const HtmlHelper = require('../utils/html-helper');
+import { DoggooFlowContext } from '../doggoo';
+import { Novel } from '../models/novel';
+const { getAttr, AttrSymbols } = require('../utils/attrs');
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
 
 class MarkdownNodeVisitor extends NodeVisitor {
@@ -17,39 +17,21 @@ class MarkdownNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak().appendLineBreak();
     }
 
-    /**
-     *
-     *
-     * @param {HTMLParagraphElement} item
-     * @memberof NodeVisitor
-     */
-    onTextElement(item) {
+    onTextElement(item: HTMLParagraphElement) {
         let text = item.textContent;
-        const hl = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_LEVEL);
+        const hl = getAttr(item, AttrSymbols.HeaderLevel);
         if (hl !== null) {
             text = '#'.repeat(hl) + ' ' + text;
         }
         this._builder.append(text).appendLineBreak();
     }
 
-    /**
-     *
-     *
-     * @param {HTMLImageElement} item
-     * @memberof NodeVisitor
-     */
-    onImageElement(item) {
-        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
+    onImageElement(item: HTMLImageElement) {
+        const url = getAttr(item, AttrSymbols.RawUrl);
         this._builder.append(`![](${url})`).appendLineBreak();
     }
 
-    /**
-     *
-     *
-     * @param {HTMLAnchorElement} item
-     * @memberof NodeVisitor
-     */
-    onLinkElement(item) {
+    onLinkElement(item: HTMLAnchorElement) {
         const title = item.textContent;
         const url = item.getAttribute('href');
         this._builder.append(`[${title}](${url})`).appendLineBreak();
@@ -61,11 +43,11 @@ class MarkdownNodeVisitor extends NodeVisitor {
 }
 
 class MarkdownGenerator extends Generator {
-    invoke(context) {
+    invoke(context: DoggooFlowContext) {
         return this.run(context.state.novel);
     }
 
-    run(novel) {
+    run(novel: Novel) {
         const w = novel.chapters.length.toString().length;
         novel.chapters.forEach((z, i) => {
             const text = new MarkdownNodeVisitor().visitChapter(z).value();
@@ -83,6 +65,4 @@ class MarkdownGenerator extends Generator {
     }
 }
 
-ioc.bind('markdown-generator', () => new MarkdownGenerator());
-
-module.exports = MarkdownGenerator;
+ioc.registerSingleton('markdown-generator', () => new MarkdownGenerator());

@@ -1,12 +1,14 @@
+import { DoggooFlowContext, AppInfo } from "../doggoo";
+import { Novel } from "../models/novel";
 'use strict';
 
 const os = require('os');
 const fs = require('fs');
 
-const { ioc } = require('@adonisjs/fold');
 const isInvalid = require('is-invalid-path');
+import { ioc } from "anyioc";
 
-const HtmlHelper = require('../utils/html-helper');
+const { getAttr, AttrSymbols } = require('../utils/attrs');
 const { Generator, NodeVisitor, StringBuilder } = require('./base');
 
 class TextNodeVisitor extends NodeVisitor {
@@ -19,34 +21,16 @@ class TextNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak();
     }
 
-    /**
-     *
-     *
-     * @param {HTMLParagraphElement} item
-     * @memberof NodeVisitor
-     */
-    onTextElement(item) {
+    onTextElement(item: HTMLParagraphElement) {
         this._builder.append(item.textContent);
     }
 
-    /**
-     *
-     *
-     * @param {HTMLImageElement} item
-     * @memberof NodeVisitor
-     */
-    onImageElement(item) {
-        const url = HtmlHelper.get(item, HtmlHelper.PROP_RAW_URL);
+    onImageElement(item: HTMLImageElement) {
+        const url = getAttr(item, AttrSymbols.RawUrl);
         this._builder.append(`<image ${url}>`);
     }
 
-    /**
-     *
-     *
-     * @param {HTMLAnchorElement} item
-     * @memberof NodeVisitor
-     */
-    onLinkElement(item) {
+    onLinkElement(item: HTMLAnchorElement) {
         this._builder.append(item.getAttribute('href'));
     }
 
@@ -60,14 +44,13 @@ class TxtGenerator extends Generator {
         super();
     }
 
-    invoke(context) {
+    invoke(context: DoggooFlowContext) {
         return this.run(context.state.novel);
     }
 
-    run(novel) {
-        const infos = ioc.use('infos');
-        infos.format = 'txt';
-        let text = infos.toString();
+    run(novel: Novel) {
+        const infoBuilder = ioc.getRequired('infoBuilder');
+        let text = infoBuilder.toString();
 
         text += os.EOL + os.EOL;
         text += novel.chapters.map(z => {
@@ -78,7 +61,7 @@ class TxtGenerator extends Generator {
         if (title.length >= 30 || isInvalid(title)) {
             title = 'book';
         }
-        const appinfo = ioc.use('app-info');
+        const appinfo = ioc.getRequired<AppInfo>('app-info');
         const filename = `${title}.${appinfo.name}-${appinfo.build}.txt`;
 
         const path = filename;
@@ -89,6 +72,4 @@ class TxtGenerator extends Generator {
     }
 }
 
-ioc.bind('txt-generator', () => new TxtGenerator());
-
-module.exports = TxtGenerator;
+ioc.registerSingleton('txt-generator', () => new TxtGenerator());

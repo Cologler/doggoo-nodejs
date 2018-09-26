@@ -1,19 +1,27 @@
-'use strict';
 
-const HtmlHelper = require('../utils/html-helper');
+import { ioc } from 'anyioc';
 
+import { getAttr, setAttr, AttrSymbols } from '../utils/attrs';
+import { Novel } from "../models/novel";
+import { Chapter } from "../models/sections";
+import { Logger } from '../utils/logger';
 
-class Optimizer {
-    constructor() {
-        this._headerTypes = {}; // headerType map to level.
-        this._headers = [];
-    }
+type HeaderInfo = {
+    title: string,
+    level: number,
+};
 
-    invoke(context) {
+export class Optimizer {
+    private _headerTypes: {
+        [type: string]: number
+    } = {}; // headerType map to level.
+    private _headers: Array<HeaderInfo> = [];
+
+    invoke(context: any) {
         this.run(context.state.novel);
     }
 
-    run(novel) {
+    run(novel: Novel) {
         this.prepareOptimize(novel);
         novel.chapters.forEach((chapter, i) => {
             this.optimizeChapter(chapter, i);
@@ -23,16 +31,16 @@ class Optimizer {
         const headers = this._headers.map(header => {
             return ' '.repeat(header.level * 2 + 7) + header.title;
         }).join('\n');
-        use('info')('resolved headers:\n%s', headers);
+        ioc.getRequired<Logger>(Logger).info('resolved headers:\n%s', headers);
     }
 
-    prepareOptimize(novel) {
+    prepareOptimize(novel: Novel) {
         const headerTypes = new Set();
 
         for (const chapter of novel.chapters) {
             for (const item of chapter.contents) {
                 if (item.tagName === 'P') {
-                    const ht = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_TYPE);
+                    const ht = getAttr(item, AttrSymbols.HeaderType);
                     if (ht !== null) {
                         headerTypes.add(ht);
                     }
@@ -51,31 +59,25 @@ class Optimizer {
         }
     }
 
-    optimizeChapter(chapter, chapterIndex) {
+    optimizeChapter(chapter: Chapter, chapterIndex: number) {
         for (const item of chapter.contents) {
             if (item.tagName === 'P') {
-                let hl = 1;
-                const ht = HtmlHelper.get(item, HtmlHelper.PROP_HEADER_TYPE);
+                let hl: number = 1;
+                const ht = getAttr<string>(item, AttrSymbols.HeaderType);
                 if (ht !== null) {
                     hl += this._headerTypes[ht];
                 }
                 if (hl > 6) {
                     hl = 6; // max header is h6.
                 }
-                HtmlHelper.set(item, HtmlHelper.PROP_HEADER_LEVEL, hl);
+                setAttr(item, AttrSymbols.HeaderLevel, hl);
                 chapter.title = item.textContent;
                 this._headers.push({
-                    title: chapter.title,
+                    title: chapter.title || '',
                     level: hl,
                 });
                 break;
             }
         }
     }
-
-
 }
-
-module.exports = {
-    Optimizer
-};

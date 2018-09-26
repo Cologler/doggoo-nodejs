@@ -1,14 +1,16 @@
 'use strict';
 
-const { ioc } = require('@adonisjs/fold');
+import { ioc } from "anyioc";
+
+import { ElementFactory } from "./factory";
 
 class Section {
-    constructor() {
-        /** @type {HTMLElement[]} */
-        this._contents = [];
+    private _contents: Array<HTMLElement> = [];
+    private _factory: ElementFactory;
 
-        /** @type {ElementFactory} */
-        this._factory = ioc.use('element-factory');
+    constructor() {
+        this._contents = [];
+        this._factory = ioc.getRequired<ElementFactory>(ElementFactory);
     }
 
     _getLastTextElement() {
@@ -19,7 +21,7 @@ class Section {
         return last;
     }
 
-    addText(text) {
+    addText(text: string) {
         text = text.trim();
         if (!text) {
             // ignore empty text.
@@ -42,13 +44,13 @@ class Section {
         return node;
     }
 
-    addImage(url) {
+    addImage(url: string) {
         const node = this._factory.createImage(url);
         this._contents.push(node);
         return node;
     }
 
-    addLink(url, title) {
+    addLink(url: string, title: string) {
         const node = this._factory.createLink(title, url);
         const last = this._getLastTextElement();
         last.appendChild(node);
@@ -59,13 +61,12 @@ class Section {
         return this._contents;
     }
 
-    get textContents() {
-        /** @type {string[]} */
-        const ret = [];
+    get textContents(): string[] {
+        const ret: string[] = [];
         this.contents.forEach(z => {
             if (z.tagName === 'P') {
                 if (ret.length === 0) {
-                    ret.push(z.textContent);
+                    ret.push(z.textContent || '');
                 } else { // > 0
                     ret[ret.length - 1] += z.textContent;
                 }
@@ -85,7 +86,9 @@ class Section {
     }
 }
 
-class Chapter extends Section {
+export class Chapter extends Section {
+    private _title: string | null = null;
+
     constructor() {
         super();
         this._title = null;
@@ -111,7 +114,3 @@ class ToC extends Section {
         super();
     }
 }
-
-module.exports = {
-    Chapter
-};

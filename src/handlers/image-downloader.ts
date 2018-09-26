@@ -3,11 +3,14 @@
 const PATH = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
+import { EventEmitter } from 'events';
 
-const { ioc } = require('@adonisjs/fold');
+import { ioc } from 'anyioc';
 const bhttp = require("bhttp");
 
-const HtmlHelper = require('../utils/html-helper');
+import { IGenerator } from '../doggoo';
+import { Logger } from '../utils/logger';
+const { getAttr, AttrSymbols } = require('../utils/attrs');
 
 const writeFileAsync = promisify(fs.writeFile);
 
@@ -15,26 +18,34 @@ const IMAGE_EXT = new Set([
     '.jpg', '.jpeg', '.png', '.bmp', '.gif'
 ]);
 
-class ImagesDownloader {
-    constructor() {
-        this._promises = [];
-        this._results = {}; // map as <url:object>
+export type FileInfo = {
+    filename: string,
+    path: string,
+}
 
-        this._requireImages = ioc.use('generator').requireImages === true;
+class ImagesDownloader {
+    private _promises: Array<Promise<any>> = [];
+    private _results: { [url: string]: FileInfo } = {};
+    private _requireImages: boolean;
+    private _logger: Logger;
+
+    constructor() {
+        this._logger = ioc.getRequired<Logger>(Logger);
+        this._requireImages = ioc.getRequired<IGenerator>('generator').requireImages;
         if (this._requireImages) {
-            ioc.use('event-emitter').on('add-image', (sender, args) => {
+            ioc.getRequired<EventEmitter>('event-emitter').on('add-image', (sender, args) => {
                 this.addImage(args.image);
             });
         }
     }
 
     async invoke() {
-        ioc.use('info')('downloading %s images ...', this._promises.length);
+        this._logger.info('downloading %s images ...', this._promises.length);
         await Promise.all(this._promises);
-        ioc.use('info')(`download images finished.`);
+        this._logger.info(`download images finished.`);
     }
 
-    addImage(image) {
+    addImage(image: HTMLImageElement) {
         const dir = 'assets';
         if (this._promises.length === 0) {
             if (!fs.existsSync(dir)) {
@@ -45,16 +56,8 @@ class ImagesDownloader {
         this._promises.push(promise);
     }
 
-    /**
-     *
-     *
-     * @param {any} root
-     * @param {any} index
-     * @param {HTMLImageElement} img
-     * @memberof ImagesDownloader
-     */
-    async onImage(root, index, img) {
-        const url = HtmlHelper.get(img, HtmlHelper.PROP_RAW_URL);
+    async onImage(root: string, index: number, img: HTMLImageElement) {
+        const url = getAttr(img, AttrSymbols.RawUrl);
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
         if (!IMAGE_EXT.has(ext)) {
             ext = '.jpg';
@@ -78,9 +81,8 @@ class ImagesDownloader {
             response = await promise;
         } catch (error) {
             if (error instanceof bhttp.ResponseTimeoutError) {
-                ioc.use('error')('timeout when downloading image <%s>.', url);
+                return this._logger.error('timeout when downloading image <%s>.', url);
             }
-            throw error;
         }
 
         await writeFileAsync(path, response.body, {
@@ -89,7 +91,7 @@ class ImagesDownloader {
         });
     }
 
-    getFileInfo(url) {
+    getFileInfo(url: string): FileInfo {
         return this._results[url];
     }
 
@@ -98,6 +100,6 @@ class ImagesDownloader {
     }
 }
 
-ioc.singleton('image-downloader', () => {
+ioc.registerSingleton('image-downloader', () => {
     return new ImagesDownloader();
 });

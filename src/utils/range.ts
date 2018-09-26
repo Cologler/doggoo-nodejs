@@ -5,7 +5,7 @@ import { ioc } from "anyioc";
 import { Logger } from "./logger";
 
 function InvalidRangeArgs<T>(text: string): T {
-    return (<Logger>ioc.get<Logger>(Logger)).error<T>(
+    return ioc.getRequired<Logger>(Logger).error<T>(
         `<%s> is invalid range args. try input like '1-15'`, text
     );
 }
@@ -31,7 +31,7 @@ export class Range {
     private _min: OptionalNumber;
     private _max: OptionalNumber;
 
-    constructor() {
+    constructor(..._: any[]) {
         let min = null;
         let max = null;
         if (arguments.length === 1) {

@@ -1,33 +1,45 @@
-'use strict';
 
-class ChapterContext {
-    constructor(window, chapter) {
-        Object.defineProperties(this, {
-            window: { get: () => window },
-            chapter: { get: () => chapter }
-        });
+import { JSDOM, DOMWindow } from 'jsdom';
+import { ioc } from 'anyioc';
+
+import { Chapter } from "../models/sections";
+import { TextConverter } from '../components/text-converter';
+
+export class ChapterContext {
+    constructor(private _window: DOMWindow, private _chapter: Chapter, private _node: Node) {
+
     }
 
-    createChildNode(node) {
-        const context = new ChapterContext(this.window, this.chapter);
-        Object.defineProperties(context, {
-            node: { get: () => node },
-        });
-        return context;
+    get window() {
+        return this._window;
+    }
+
+    get chapter() {
+        return this._chapter;
+    }
+
+    get node() {
+        return this._node;
+    }
+
+    createChildNode(node: Node) {
+        return new ChapterContext(this.window, this.chapter, node);
     }
 }
 
-class NodeVisitor {
+export class NodeVisitor {
+    private _visitInnerTagNames: Set<string> = new Set();
+    private _textConverter: TextConverter;
+
     constructor() {
-        this._visitInnerTagNames = new Set();
-        this._textConverter = use('text-converter');
+        this._textConverter = ioc.getRequired<TextConverter>(TextConverter);
     }
 
-    addVisitInnerTagName(tagName) {
+    addVisitInnerTagName(tagName: string) {
         this._visitInnerTagNames.add(tagName);
     }
 
-    visit(context) {
+    visit(context: ChapterContext) {
         const window = context.window;
         switch (context.node.nodeType) {
             case window.Node.TEXT_NODE:
@@ -43,11 +55,12 @@ class NodeVisitor {
         }
     }
 
-    visitTextNode(context) {
-        const t = this._textConverter.convert(context.node.textContent);
-        switch (context.node.parentNode.tagName) {
+    visitTextNode(context: ChapterContext) {
+        const t = this._textConverter.convert(context.node.textContent || '');
+        const parent = <HTMLElement>context.node.parentNode;
+        switch (parent.tagName) {
             case 'A':
-                context.chapter.addLink(context.node.parentNode.href, t);
+                context.chapter.addLink((<HTMLAnchorElement>parent).href, t);
                 break;
 
             default:
@@ -56,19 +69,21 @@ class NodeVisitor {
         }
     }
 
-    ensureNoChild(el) {
+    ensureNoChild(el: HTMLElement) {
         if (el.childNodes.length !== 0) {
             throw new Error('ensure no child.');
         }
     }
 
-    visitElementNode(context) {
-        if (this._visitInnerTagNames.has(context.node.tagName)) {
+    visitElementNode(context: ChapterContext) {
+        const el = <HTMLElement> context.node;
+
+        if (this._visitInnerTagNames.has(el.tagName)) {
             this.visitInner(context);
             return;
         }
 
-        switch (context.node.tagName) {
+        switch (el.tagName) {
             case 'DIV':
                 this.visitInner(context);
                 context.chapter.addLineBreak();
@@ -87,7 +102,7 @@ class NodeVisitor {
                 break;
 
             case 'HR': // 分割线
-                this.ensureNoChild(context.node);
+                this.ensureNoChild(el);
                 break;
 
             case 'TABLE':
@@ -102,22 +117,17 @@ class NodeVisitor {
                 break;
 
             case 'IMG':
-                context.chapter.addImage(context.node.src);
+                context.chapter.addImage((<HTMLImageElement> el).src);
                 break;
 
             default:
-                throw Error(`unhandled node: <${context.node.tagName}>\n${context.node.innerHTML}`);
+                throw Error(`unhandled node: <${el.tagName}>\n${el.innerHTML}`);
         }
     }
 
-    visitInner(context) {
+    visitInner(context: ChapterContext) {
         context.node.childNodes.forEach(z => {
             this.visit(context.createChildNode(z));
         });
     }
 }
-
-module.exports = {
-    ChapterContext,
-    NodeVisitor
-};

@@ -18,4 +18,5 @@ export var AttrSymbols = {
     RawUrl: Symbol('raw-url'),
     HeaderType: Symbol('header-type'),
     HeaderLevel: Symbol('header-level'),
+    ImageIndex: Symbol('image-index'),
 };
