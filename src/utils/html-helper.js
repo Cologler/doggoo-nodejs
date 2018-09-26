@@ -12,7 +12,7 @@ const HtmlHelper = {
         let options = store.get(node);
         if (!options) {
             options = {};
-            store.set(propName, options);
+            store.set(node, options);
         }
         options[propName] = value;
     },
