@@ -1,7 +1,7 @@
 'use strict';
 
 const { ioc } = require('@adonisjs/fold');
-const uuid = require('node-uuid');
+const uuid = require('uuid/v4');
 const { JSDOM } = require('jsdom');
 const { parse } = require('parse5');
 const { serializeToString } = require('xmlserializer');
@@ -261,7 +261,7 @@ class EpubGenerator extends Generator {
         const book = this._book;
 
         let title = novel.titleOrDefault;
-        const bookUid = uuid.v4();
+        const bookUid = uuid();
 
         book.title = title;
         book.author = novel.author || 'AUTHOR';
