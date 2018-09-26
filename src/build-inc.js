@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const srcPath = 'src\\app.js';
+const srcPath = 'src\\app.ts';
 
 const script = fs.readFileSync(srcPath, 'utf-8');
 let newScript = script;
