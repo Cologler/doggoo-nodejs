@@ -2,7 +2,13 @@ const store = new WeakMap<object, Map<PropertyKey, any>>();
 
 export function getAttr<T>(node: object, key: PropertyKey, def: any = null): T {
     const options = store.get(node);
-    return options && options.get(key) || def;
+    if (options) {
+        const value = options.get(key);
+        if (value !== undefined) {
+            return value;
+        }
+    }
+    return def;
 };
 
 export function setAttr(node: object, key: PropertyKey, value: any) {
