@@ -23,7 +23,7 @@ export type FileInfo = {
     path: string,
 }
 
-class ImagesDownloader {
+export class ImagesDownloader {
     private _promises: Array<Promise<any>> = [];
     private _results: { [url: string]: FileInfo } = {};
     private _requireImages: boolean;

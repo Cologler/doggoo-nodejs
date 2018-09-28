@@ -17,7 +17,7 @@ export interface FlowContextState {
 export type DoggooFlowContext = FlowContext<FlowContextState>;
 
 export interface IGenerator {
-    invoke(): void;
+    invoke(context: DoggooFlowContext): void;
 
     readonly requireImages: boolean;
 }

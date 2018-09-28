@@ -37,6 +37,7 @@ export class ElementFactory {
         const node = this._document.createElement('img');
         setAttr(node, AttrSymbols.RawUrl, url);
         setAttr(node, AttrSymbols.ImageIndex, this._imageIndex);
+        console.log(this._imageIndex);
         this._imageIndex++;
         this._eventEmitter.emit('add-image', this, {
             image: node

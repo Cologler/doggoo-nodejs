@@ -5,7 +5,7 @@ import os from 'os';
 import { ioc } from "anyioc";
 
 import { Chapter } from '../models/sections';
-import { IGenerator } from '../doggoo';
+import { IGenerator, DoggooFlowContext } from '../doggoo';
 
 /**
  * a simple stringbuilder.
@@ -69,7 +69,7 @@ export abstract class Generator implements IGenerator {
         return false;
     }
 
-    abstract invoke(): void;
+    abstract invoke(context: DoggooFlowContext): void;
 }
 
 class NoneGenerator extends Generator {

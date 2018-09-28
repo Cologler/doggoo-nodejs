@@ -46,7 +46,7 @@ export abstract class AppOptions {
     abstract get output(): string | null;
     abstract get range(): Range | null;
     abstract get cc(): string | null;
-    abstract get coverIndex(): string | null;
+    abstract get CoverIndex(): string | null;
     abstract get noImages(): boolean;
     abstract hasFlag(name: string): boolean;
     abstract get limitChars(): number;
@@ -114,7 +114,7 @@ class AppOptionsImpl extends AppOptions {
         return this._options['--cc'];
     }
 
-    get coverIndex() {
+    get CoverIndex() {
         return this._options['--cover-index'];
     }
 
