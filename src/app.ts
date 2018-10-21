@@ -4,8 +4,8 @@ import { ioc } from "anyioc";
 
 import { AppInfo } from "./doggoo";
 
-const build = 49;
-const buildtime = new Date(1538155709823);
+const build = 51;
+const buildtime = new Date(1540111622609);
 
 ioc.registerSingleton('app-info', () => {
     const info: AppInfo = {
