@@ -6,7 +6,7 @@ const { promisify } = require('util');
 import { EventEmitter } from 'events';
 
 import { ioc } from 'anyioc';
-const bhttp = require("bhttp");
+import * as request from 'request-promise-native';
 
 import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
@@ -28,6 +28,7 @@ export class ImagesDownloader {
     private _results: { [url: string]: FileInfo } = {};
     private _requireImages: boolean;
     private _logger: Logger;
+    private _loggerCalls: Array<Function> = [];
 
     constructor() {
         this._logger = ioc.getRequired<Logger>(Logger);
@@ -42,6 +43,9 @@ export class ImagesDownloader {
     async invoke() {
         this._logger.info('downloading %s images ...', this._promises.length);
         await Promise.all(this._promises);
+        for (const logCall of this._loggerCalls) {
+            logCall();
+        }
         this._logger.info(`download images finished.`);
     }
 
@@ -70,22 +74,18 @@ export class ImagesDownloader {
             path,
         };
 
-        const promise = bhttp.get(url, {
-            steam: true,
-            responseTimeout: 30000
+        const body = await request.get(url, {
+            encoding: null, // for buffer
+            timeout: 30000
         });
 
-        let response;
-
-        try {
-            response = await promise;
-        } catch (error) {
-            if (error instanceof bhttp.ResponseTimeoutError) {
-                return this._logger.error('timeout when downloading image <%s>.', url);
-            }
+        if (body.length === 0) {
+            this._loggerCalls.push(() => {
+                this._logger.warn('image size: 0, url: <%s>', url);
+            });
         }
 
-        await writeFileAsync(path, response.body, {
+        await writeFileAsync(path, body, {
             encoding: 'binary',
             flag: 'w'
         });

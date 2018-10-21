@@ -16,11 +16,14 @@
     "jsdom": "^11.12.0",
     "node-opencc": "^2.0.1",
     "parse5": "^5.1.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5",
     "uuid": "^3.3.2",
     "xml-escape": "^1.1.0",
     "xmlserializer": "^0.6.1"
   },
   "devDependencies": {
+    "@types/request-promise-native": "^1.0.15",
     "@types/chardet": "^0.5.0",
     "@types/cli-color": "^0.3.29",
     "@types/docopt": "^0.6.31",
