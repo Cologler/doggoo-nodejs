@@ -68,10 +68,11 @@ class EpubNodeVisitor extends NodeVisitor {
 
     visitChapter(chapter: Chapter) {
         // title
-        const chapterTitle = chapter.title || '';
-        const titleEl = this._document.createElement('title');
-        titleEl.textContent = chapterTitle;
-        this._document.head.appendChild(titleEl);
+        this._document.title = chapter.title || '';
+        //const chapterTitle = chapter.title || '';
+        //const titleEl = this._document.createElement('title');
+        //titleEl.textContent = chapterTitle;
+        //this._document.head.appendChild(titleEl);
 
         // css
         if (this._context.CSSPath) {
@@ -79,7 +80,7 @@ class EpubNodeVisitor extends NodeVisitor {
             styleEl.type = 'text/css';
             styleEl.rel = 'stylesheet';
             styleEl.href = STYLE_NAME;
-            this._document.head.appendChild(styleEl);
+            (<HTMLHeadElement> this._document.head).appendChild(styleEl);
         }
 
         return super.visitChapter(chapter);
