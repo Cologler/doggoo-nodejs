@@ -1,4 +1,4 @@
-import { FlowContext } from "anyflow";
+import { FlowContext, Middleware } from "anyflow";
 
 import { AppOptions } from "./options";
 import { Novel } from "./models/novel";
@@ -32,4 +32,6 @@ export interface InfoBuilder {
 
 export interface IParser {
     readonly name: string;
+
+    invoke(context: DoggooFlowContext): Promise<any>;
 }

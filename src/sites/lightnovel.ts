@@ -15,7 +15,7 @@ import { Novel } from '../models/novel';
 import { ChapterContext, NodeVisitor } from '../core/node-visitor';
 import { getAbsoluteUrl } from '../utils/url-utils';
 import { setAttr, AttrSymbols } from '../utils/attrs';
-import { IParser } from '../doggoo';
+import { IParser, DoggooFlowContext } from '../doggoo';
 
 function match() {
     const options = ioc.getRequired<AppOptions>(AppOptions);
@@ -245,7 +245,7 @@ class LightNovelParser implements IParser {
         }
     }
 
-    invoke(context: any) {
+    invoke(context: DoggooFlowContext) {
         return this._buildNovel(context.state.novel);
     }
 
