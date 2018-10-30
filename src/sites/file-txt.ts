@@ -23,7 +23,7 @@ function match() {
     if (!filepath || !fs.existsSync(filepath)) {
         return false;
     }
-    let stats = fs.lstatSync('/the/path');
+    let stats = fs.lstatSync(filepath);
     if (!stats.isFile()) {
         return false;
     }
