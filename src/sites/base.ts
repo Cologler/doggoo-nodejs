@@ -1,9 +1,8 @@
 import { ioc } from "anyioc";
 
-import { IParser, DoggooFlowContext } from "../doggoo";
+import { IParser, DoggooFlowContext, InfoBuilder } from "../doggoo";
 import { Chapter } from "../models/sections";
 import { TextConverter } from "../components/text-converter";
-import { AppOptions } from "../options";
 
 export abstract class EasyParser implements IParser {
     abstract name: string;
@@ -23,6 +22,14 @@ export abstract class EasyParser implements IParser {
 
     convertText(text: string): string {
         return this._textConverter.convert(text);
+    }
+
+
+    /**
+     * hide user info from the generated book.
+     */
+    hideSource(newSource: string) {
+        ioc.getRequired<InfoBuilder>('info-builder').source = newSource;
     }
 
     async invoke(context: DoggooFlowContext) {

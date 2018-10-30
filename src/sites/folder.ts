@@ -2,10 +2,9 @@ import fs from 'fs';
 import path from 'path';
 
 import { ioc } from "anyioc";
-import { Middleware } from "anyflow";
 
 import { AppOptions } from "../options";
-import { InfoBuilder, IParser, DoggooFlowContext } from '../doggoo';
+import { DoggooFlowContext } from '../doggoo';
 import { readText } from '../utils/text-reader';
 import { EasyParser } from './base';
 
@@ -27,6 +26,8 @@ class DirectoryParser extends EasyParser {
     name: string = 'dir';
 
     async parseChapters(context: DoggooFlowContext): Promise<any> {
+        this.hideSource('some docs');
+
         const options = context.state.options;
         const dirpath = options.source;
         const items = await fs.promises.readdir(dirpath);

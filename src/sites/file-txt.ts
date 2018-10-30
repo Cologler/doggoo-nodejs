@@ -1,20 +1,12 @@
 import fs from 'fs';
 import path from 'path';
-import { promisify } from 'util';
-import iconv from 'iconv-lite';
 
 import { ioc } from "anyioc";
 
-const readFileAsync = promisify(fs.readFile);
-const detectFileAsync = promisify(require('chardet').detectFile);
-
 import { readText } from "../utils/text-reader";
 import { setAttr, AttrSymbols } from '../utils/attrs';
-import { Chapter } from '../models/sections';
-import { Novel } from "../models/novel";
-import { TextConverter } from "../components/text-converter";
 import { AppOptions } from "../options";
-import { InfoBuilder, IParser, DoggooFlowContext } from '../doggoo';
+import { DoggooFlowContext } from '../doggoo';
 import { EasyParser } from './base';
 
 function match() {
@@ -42,10 +34,7 @@ class TxtFileParser extends EasyParser {
     }
 
     async parseChapters(context: DoggooFlowContext) {
-        // hide user info from the generated book.
-        ioc.getRequired<InfoBuilder>('info-builder').source = 'a txt file';
-
-        const novel = context.state.novel;
+        this.hideSource('a .txt file');
 
         const options = ioc.getRequired<AppOptions>('options');
         const filepath = options.source;
