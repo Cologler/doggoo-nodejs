@@ -1,12 +1,13 @@
 'use strict';
 
-const PATH = require('path');
-const fs = require('fs');
+import PATH from 'path';
+import fs from 'fs';
 const { promisify } = require('util');
 import { EventEmitter } from 'events';
 
 import { ioc } from 'anyioc';
-import * as request from 'request-promise-native';
+import request from 'request-promise-native';
+import { RequestError } from "request-promise-native/errors";
 
 import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
@@ -74,10 +75,19 @@ export class ImagesDownloader {
             path,
         };
 
-        const body = await request.get(url, {
-            encoding: null, // for buffer
-            timeout: 30000
-        });
+        let body = null;
+
+        try {
+            body = await request.get(url, {
+                encoding: null, // for buffer
+                timeout: 30000
+            });
+        } catch (error) {
+            if (error instanceof RequestError) {
+                this._logger.error('cannot download image with url: <%s>, msg: <%s>', url, error.message);
+            }
+            throw error;
+        }
 
         if (body.length === 0) {
             this._loggerCalls.push(() => {
