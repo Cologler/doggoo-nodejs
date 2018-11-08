@@ -29,7 +29,7 @@ function match() {
             }
 
             // example: `/thread-901251-1-1.html`
-            if (/^\/thread-\d+-1-1.html$/.test(<string>url.pathname)) {
+            if (/^\/thread-\d+-1-\d+.html$/.test(<string>url.pathname)) {
                 return true;
             }
         }
@@ -81,7 +81,7 @@ class UniLightNovelUrl extends LightNovelUrl {
     constructor(url: URL.Url) {
         super(url);
 
-        const match = (<string>url.pathname).match(/^\/thread-(\d+)-(\d+)-1.html$/);
+        const match = (<string>url.pathname).match(/^\/thread-(\d+)-(\d+)-\d+.html$/);
         if (match === null) {
             throw Error(`unknown url path <${url.pathname}>`);
         }
