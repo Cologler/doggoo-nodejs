@@ -13,8 +13,6 @@ import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
 const { getAttr, AttrSymbols } = require('../utils/attrs');
 
-const writeFileAsync = promisify(fs.writeFile);
-
 const IMAGE_EXT = new Set([
     '.jpg', '.jpeg', '.png', '.bmp', '.gif'
 ]);
@@ -95,7 +93,7 @@ export class ImagesDownloader {
             });
         }
 
-        await writeFileAsync(path, body, {
+        await fs.promises.writeFile(path, body, {
             encoding: 'binary',
             flag: 'w'
         });

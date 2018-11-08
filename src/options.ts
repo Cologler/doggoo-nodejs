@@ -1,6 +1,6 @@
 'use strict';
 
-const fs = require('fs');
+import fs from 'fs';
 const path = require("path");
 const { promisify } = require('util');
 
@@ -9,7 +9,6 @@ import { ioc } from "anyioc";
 import { Logger } from "./utils/logger";
 
 const existsAsync = promisify(fs.exists);
-const readFileAsync = promisify(fs.readFile);
 const homedir = require('os').homedir();
 
 const doc = `
@@ -179,7 +178,7 @@ class AppOptionsImpl extends AppOptions {
                 if (!await existsAsync(path)) {
                     return logger.error('no such cookie file: %s.', path);
                 }
-                this._cookieString = await readFileAsync(path, 'utf-8');
+                this._cookieString = <string> await fs.promises.readFile(path, 'utf-8');
                 logger.info('load cookie from file: %s', path);
             } else {
                 this._cookieString = cookieArg;
@@ -188,7 +187,7 @@ class AppOptionsImpl extends AppOptions {
         } else {
             const path = await resolvePathAsync('doggoo_cookie.txt');
             if (path) {
-                this._cookieString = await readFileAsync(path, 'utf-8');
+                this._cookieString = <string> await fs.promises.readFile(path, 'utf-8');
                 logger.info('load default cookie from file: %s.', path);
             }
         }
