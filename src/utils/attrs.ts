@@ -1,14 +1,25 @@
-const store = new WeakMap<object, Map<PropertyKey, any>>();
+const store = new WeakMap<object, Map<PropertyKey, unknown>>();
 
-export function getAttr<T>(node: object, key: PropertyKey, def: any = null): T {
+export function getAttr<T>(node: object, key: PropertyKey, def: T | null = null): T | null {
     const options = store.get(node);
     if (options) {
         const value = options.get(key);
         if (value !== undefined) {
-            return value;
+            return <T> value;
         }
     }
     return def;
+};
+
+export function getRequiredAttr<T>(node: object, key: PropertyKey): T {
+    const options = store.get(node);
+    if (options) {
+        const value = options.get(key);
+        if (value !== undefined) {
+            return <T> value;
+        }
+    }
+    throw new Error('missing required attr');
 };
 
 export function setAttr(node: object, key: PropertyKey, value: any) {

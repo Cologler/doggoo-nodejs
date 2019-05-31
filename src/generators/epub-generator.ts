@@ -17,7 +17,7 @@ import { AppOptions } from '../options';
 import { FileInfo, ImagesDownloader } from '../handlers/image-downloader';
 import { DoggooFlowContext, InfoBuilder, AppInfo } from "../doggoo";
 import { Novel } from '../models/novel';
-import { getAttr, AttrSymbols } from '../utils/attrs';
+import * as attrs from '../utils/attrs';
 import { Generator, NodeVisitor } from "./base";
 
 
@@ -93,7 +93,7 @@ class EpubNodeVisitor extends NodeVisitor {
     onTextElement(item: HTMLParagraphElement) {
         let el = null;
         /** @type {number} */
-        const hl = getAttr<number>(item, AttrSymbols.HeaderLevel);
+        const hl = attrs.getAttr<number>(item, attrs.AttrSymbols.HeaderLevel);
         if (hl !== null) {
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
@@ -123,11 +123,11 @@ class EpubNodeVisitor extends NodeVisitor {
     }
 
     onImageElement(item: HTMLImageElement) {
-        const url = getAttr<string>(item, AttrSymbols.RawUrl);
+        const url = attrs.getRequiredAttr<string>(item, attrs.AttrSymbols.RawUrl);
         const fileinfo = this._context.ImagesDownloader.getFileInfo(url);
 
         if (this._context.requireImages) {
-            if (getAttr<number>(item, AttrSymbols.ImageIndex) === this.CoverIndex || url === this.CoverIndex) {
+            if (attrs.getAttr<number>(item, attrs.AttrSymbols.ImageIndex) === this.CoverIndex || url === this.CoverIndex) {
                 this._context.addCoverImage(fileinfo);
             } else {
                 this._context.addAsset(fileinfo);
