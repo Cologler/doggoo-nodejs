@@ -2,10 +2,10 @@
 
 import URL from 'url';
 
-import jsdom from 'jsdom';
+import request from 'request-promise-native';
+import jsdom, { toughCookie } from 'jsdom';
 import { DOMWindow, JSDOM } from 'jsdom';
 import { ioc } from 'anyioc';
-const bhttp = require("bhttp");
 
 import { AppOptions } from '../options';
 import { Logger } from '../utils/logger';
@@ -166,21 +166,21 @@ function detectTotalPageCount(window: DOMWindow) {
 function createWebClient(options: AppOptions) {
     const logger = ioc.getRequired<Logger>(Logger);
 
-    const headers: any = {};
     const cookie = options.CookieString;
+    const requestOptions: request.RequestPromiseOptions = {
+        encoding: 'utf-8'
+    };
+
     if (cookie) {
-        headers.cookie = cookie;
+        requestOptions.headers = {
+            Cookie: cookie
+        };
         logger.info('init http with cookie.');
     } else {
         logger.info('init http without cookie.');
     }
 
-    // web client
-    const http = bhttp.session({
-        headers,
-        cookieJar: false
-    });
-    return http;
+    return request.defaults(requestOptions);
 }
 
 class LightNovelParser implements IParser {
@@ -188,7 +188,7 @@ class LightNovelParser implements IParser {
     private _range: Range | null;
     private _url: LightNovelUrl;
     private _chapters: Array<Chapter> = [];
-    private _http: any;
+    private _http: request.RequestPromiseAPI;
     private _threadSubject: string | null = null;
     private _logger: Logger;
 
@@ -296,7 +296,7 @@ class LightNovelParser implements IParser {
     }
 
     async _getDomAsync(url: string) {
-        let response = null;
+        let response: string | null = null;
         try {
             response = await this._http.get(url);
         } catch (error) {
@@ -305,7 +305,7 @@ class LightNovelParser implements IParser {
             }
             throw error;
         }
-        const dom = new jsdom.JSDOM(response.body.toString());
+        const dom = new jsdom.JSDOM((<string> response));
         return dom;
     }
 

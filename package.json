@@ -5,7 +5,6 @@
   "dependencies": {
     "anyflow": "^0.2.1",
     "anyioc": "^0.2.3",
-    "bhttp": "^1.2.4",
     "chardet": "^0.5.0",
     "cli-color": "^1.4.0",
     "docopt": "^0.6.2",
@@ -16,6 +15,7 @@
     "node-opencc": "^2.0.1",
     "parse5": "^5.1.0",
     "request": "^2.88.0",
+    "request-debug": "^0.2.0",
     "request-promise-native": "^1.0.7",
     "uuid": "^3.3.2",
     "xml-escape": "^1.1.0",
