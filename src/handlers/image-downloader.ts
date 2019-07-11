@@ -2,7 +2,6 @@
 
 import PATH from 'path';
 import fs from 'fs';
-const { promisify } = require('util');
 import { EventEmitter } from 'events';
 
 import { ioc } from 'anyioc';

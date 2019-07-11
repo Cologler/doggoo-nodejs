@@ -9,12 +9,13 @@ const isInvalid = require('is-invalid-path');
 import { ioc } from "anyioc";
 
 const { getAttr, AttrSymbols } = require('../utils/attrs');
-const { Generator, NodeVisitor, StringBuilder } = require('./base');
+import { Generator, NodeVisitor, StringBuilder } from './base';
 
 class TextNodeVisitor extends NodeVisitor {
+    private _builder: StringBuilder = new StringBuilder();
+
     constructor() {
         super();
-        this._builder = new StringBuilder();
     }
 
     onLineBreak() {
@@ -22,7 +23,10 @@ class TextNodeVisitor extends NodeVisitor {
     }
 
     onTextElement(item: HTMLParagraphElement) {
-        this._builder.append(item.textContent);
+        const text = item.textContent;
+        if (text) {
+            this._builder.append(text);
+        }
     }
 
     onImageElement(item: HTMLImageElement) {
@@ -31,7 +35,10 @@ class TextNodeVisitor extends NodeVisitor {
     }
 
     onLinkElement(item: HTMLAnchorElement) {
-        this._builder.append(item.getAttribute('href'));
+        const href = item.getAttribute('href');
+        if (href) {
+            this._builder.append(href);
+        }
     }
 
     value() {
@@ -49,7 +56,7 @@ class TxtGenerator extends Generator {
     }
 
     run(novel: Novel) {
-        const infoBuilder = ioc.getRequired('infoBuilder');
+        const infoBuilder: any = ioc.getRequired('infoBuilder');
         let text = infoBuilder.toString();
 
         text += os.EOL + os.EOL;

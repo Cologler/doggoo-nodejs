@@ -5,9 +5,11 @@ import { ioc } from "anyioc";
 import { DoggooFlowContext } from '../doggoo';
 import { Novel } from '../models/novel';
 const { getAttr, AttrSymbols } = require('../utils/attrs');
-const { Generator, NodeVisitor, StringBuilder } = require('./base');
+import { Generator, NodeVisitor, StringBuilder } from './base'
 
 class MarkdownNodeVisitor extends NodeVisitor {
+    private _builder: StringBuilder = new StringBuilder();
+
     constructor() {
         super();
         this._builder = new StringBuilder();
@@ -19,11 +21,13 @@ class MarkdownNodeVisitor extends NodeVisitor {
 
     onTextElement(item: HTMLParagraphElement) {
         let text = item.textContent;
-        const hl = getAttr(item, AttrSymbols.HeaderLevel);
-        if (hl !== null) {
-            text = '#'.repeat(hl) + ' ' + text;
+        if (text) {
+            const hl = getAttr(item, AttrSymbols.HeaderLevel);
+            if (hl !== null) {
+                text = '#'.repeat(hl) + ' ' + text;
+            }
+            this._builder.append(text).appendLineBreak();
         }
-        this._builder.append(text).appendLineBreak();
     }
 
     onImageElement(item: HTMLImageElement) {
