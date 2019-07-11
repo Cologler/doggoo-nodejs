@@ -34,7 +34,7 @@
     "@types/request-promise-native": "^1.0.16",
     "mocha": "^5.2.0",
     "ts-mocha": "^2.0.0",
-    "typescript": "^3.5.2"
+    "typescript": "^3.5.3"
   },
   "scripts": {
     "test": "ts-mocha src/**/*.spec.ts",
