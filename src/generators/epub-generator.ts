@@ -297,7 +297,7 @@ export class EpubGenerator extends Generator {
             title = 'book';
         }
         const appinfo = ioc.getRequired<AppInfo>('app-info');
-        book.createBook(`${title}.${appinfo.name}-${appinfo.build}`);
+        book.createBook(`${title}.${appinfo.name}-${appinfo.build}.epub`);
     }
 }
 
