@@ -18,28 +18,30 @@ import { setAttr, AttrSymbols } from '../utils/attrs';
 import { IParser, DoggooFlowContext } from '../doggoo';
 import { NotNull } from '../utils/contract';
 
-function match() {
+function match(): boolean {
     const options = ioc.getRequired<AppOptions>(AppOptions);
-    if (options.source) {
-        let url = URL.parse(options.source);
-        if (url && url.hostname === 'www.lightnovel.cn') {
-            // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
-            if ('/forum.php' === url.pathname) {
-                const query = new URL.URLSearchParams(<string>url.query);
-                return query.has('tid');
-            }
+    return !!options.source && matchUrl(options.source);
+}
 
-            // example: `/thread-901251-1-1.html`
-            if (/^\/thread-\d+-1-\d+.html$/.test(<string>url.pathname)) {
-                return true;
-            }
+export function matchUrl(urlString: string): boolean {
+    let url = URL.parse(urlString);
+    if (url && url.hostname!.match(/^(www\.)?lightnovel\.(cn|us)$/)) {
+        // example: `/forum.php?mod=viewthread&tid=910583&extra=page%3D1%26filter%3Dtypeid%26typeid%3D367%26orderby%3Dviews`
+        if ('/forum.php' === url.pathname) {
+            const query = new URL.URLSearchParams(<string>url.query);
+            return query.has('tid');
+        }
+
+        // example: `/thread-901251-1-1.html`
+        if (/^\/thread-\d+-1-\d+.html$/.test(<string>url.pathname)) {
+            return true;
         }
     }
     return false;
 }
 
 export abstract class LightNovelUrl {
-    constructor(private _url: URL.Url) {
+    constructor(protected _url: URL.Url) {
     }
 
     get value() {
@@ -110,7 +112,7 @@ class UniLightNovelUrl extends LightNovelUrl {
     get PageIndex() { return this._pageIndex; }
 
     changePageIndex(newPageIndex: number) {
-        return `https://www.lightnovel.cn/thread-${this._threadId}-${newPageIndex}-1.html`;
+        return `https://${this._url.hostname}/thread-${this._threadId}-${newPageIndex}-1.html`;
     }
 }
 
