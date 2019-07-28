@@ -16,6 +16,7 @@ import { ChapterContext, NodeVisitor } from '../core/node-visitor';
 import { getAbsoluteUrl } from '../utils/url-utils';
 import { setAttr, AttrSymbols } from '../utils/attrs';
 import { IParser, DoggooFlowContext } from '../doggoo';
+import { NotNull } from '../utils/contract';
 
 function match() {
     const options = ioc.getRequired<AppOptions>(AppOptions);
@@ -37,7 +38,7 @@ function match() {
     return false;
 }
 
-class LightNovelUrl {
+export abstract class LightNovelUrl {
     constructor(private _url: URL.Url) {
     }
 
@@ -45,20 +46,34 @@ class LightNovelUrl {
         return this._url.href;
     }
 
+    /**
+     * get thread Id
+     *
+     * @readonly
+     * @type {string}
+     * @memberof LightNovelUrl
+     */
     get ThreadId(): string { throw new Error(); }
 
+    /**
+     * get page index for this thread
+     *
+     * @readonly
+     * @type {string}
+     * @memberof LightNovelUrl
+     */
     get PageIndex(): string { throw new Error(); }
 
     changePageIndex(newPageIndex: number): string { throw new Error(); }
 
     /**
-     *
+     * parse a lightnovel url from a string
      *
      * @static
      * @param {string} urlString
      * @memberof LightNovelUrl
      */
-    static parse(urlString: string) {
+    static parse(urlString: string): LightNovelUrl {
         let url = URL.parse(urlString);
         if (url.pathname === '/forum.php') {
             return new PhpLightNovelUrl(url);
@@ -113,10 +128,10 @@ class PhpLightNovelUrl extends LightNovelUrl {
     constructor(url: URL.Url) {
         super(url);
 
-        this._query = new URL.URLSearchParams(<string> url.query);
+        this._query = new URL.URLSearchParams(url.query!);
 
-        this._threadId = <string> this._query.get('tid');
-        this._pageIndex = <string> this._query.get('page');
+        this._threadId = NotNull(this._query.get('tid'), 'Missing param: tid');
+        this._pageIndex = NotNull(this._query.get('page'), 'Missing param: page');
     }
 
     get ThreadId() { return this._threadId; }
@@ -130,13 +145,6 @@ class PhpLightNovelUrl extends LightNovelUrl {
         newUrl.search = param.toString();
         return newUrl.toString();
     }
-}
-
-function parseFloor(text: string) {
-    text = text.trim();
-    const match = text.match(/^(\d+)楼$/);
-    if (!match) throw Error(text);
-    return Number(match[1]);
 }
 
 function detectTotalPageCount(window: DOMWindow) {
@@ -300,8 +308,8 @@ class LightNovelParser implements IParser {
         try {
             response = await this._http.get(url);
         } catch (error) {
-            if (error.name === 'ConnectionTimeoutError') {
-                this._logger.error(`timeout when load url: %s.`, url);
+            if (error.name === 'RequestError') {
+                this._logger.error(`timeout when load url: %s, msg: %s.`, url, error.message);
             }
             throw error;
         }

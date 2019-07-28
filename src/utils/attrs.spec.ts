@@ -1,7 +1,7 @@
 import { strictEqual } from "assert";
 import { getAttr, setAttr, AttrSymbols } from './attrs';
 
-describe('attrs.js', function() {
+describe('attrs.ts', function() {
     it('should has default value null', function() {
         const obj = {};
         strictEqual(getAttr(obj, 1), null);
