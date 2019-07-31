@@ -5,7 +5,7 @@
   "dependencies": {
     "anyflow": "^0.2.1",
     "anyioc": "^0.2.3",
-    "chardet": "^0.7.0",
+    "chardet": "^0.8.0",
     "cli-color": "^1.4.0",
     "docopt": "^0.6.2",
     "epub-builder": "git+https://github.com/CharlesMulloy/epub-builder.git",
@@ -28,15 +28,16 @@
     "@types/expect": "^1.20.4",
     "@types/jsdom": "^12.2.4",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.6.2",
+    "@types/node": "^12.6.8",
     "@types/node-uuid": "0.0.28",
-    "@types/parse5": "^5.0.1",
+    "@types/parse5": "^5.0.2",
     "@types/request-promise-native": "^1.0.16",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.0",
     "ts-mocha": "^6.0.0",
     "typescript": "^3.5.3"
   },
   "scripts": {
+    "run": "ts-node src/main.ts",
     "test": "ts-mocha src/**/*.spec.ts",
     "pkg": "pkg dist/main.js -t node12-win -o dist-bin/doggoo",
     "compile": "node src/build-inc && tsc && npm run pkg"
