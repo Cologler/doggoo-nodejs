@@ -2,6 +2,7 @@
 
 import PATH from 'path';
 import fs from 'fs';
+import os from 'os';
 import { EventEmitter } from 'events';
 
 import { ioc } from 'anyioc';
@@ -19,6 +20,11 @@ const IMAGE_EXT = new Set([
 export type FileInfo = {
     filename: string,
     path: string,
+}
+
+const CacheDir = PATH.join(os.tmpdir(), 'doggoo-images');
+if (!fs.existsSync(CacheDir)){
+    fs.mkdirSync(CacheDir);
 }
 
 export class ImagesDownloader {
@@ -58,6 +64,41 @@ export class ImagesDownloader {
         this._promises.push(promise);
     }
 
+    async fetchBody(url: string): Promise<Buffer> {
+        try {
+            return await request.get(url, {
+                encoding: null, // for buffer
+                timeout: 30000
+            });
+        } catch (error) {
+            if (error instanceof RequestError) {
+                this._logger.error('cannot download image with url: <%s>, msg: <%s>', url, error.message);
+            }
+            throw error;
+        }
+    }
+
+    async fetchToCache(url: string): Promise<string> {
+        const fileName = url.replace(/[:/]/g, '#');
+        const filePath = PATH.join(CacheDir, fileName);
+
+        if (!fs.existsSync(filePath)) {
+            const body = await this.fetchBody(url);
+            if (body.length === 0) {
+                this._loggerCalls.push(() => {
+                    this._logger.warn('image size: 0, url: <%s>', url);
+                });
+            }
+            // use sync write to avoid crash to write a bad file.
+            fs.writeFileSync(filePath, body, {
+                encoding: 'binary',
+                flag: 'w'
+            });
+        }
+
+        return filePath;
+    }
+
     async onImage(root: string, index: number, img: HTMLImageElement) {
         const url = getAttr(img, AttrSymbols.RawUrl);
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
@@ -72,30 +113,8 @@ export class ImagesDownloader {
             path,
         };
 
-        let body = null;
-
-        try {
-            body = await request.get(url, {
-                encoding: null, // for buffer
-                timeout: 30000
-            });
-        } catch (error) {
-            if (error instanceof RequestError) {
-                this._logger.error('cannot download image with url: <%s>, msg: <%s>', url, error.message);
-            }
-            throw error;
-        }
-
-        if (body.length === 0) {
-            this._loggerCalls.push(() => {
-                this._logger.warn('image size: 0, url: <%s>', url);
-            });
-        }
-
-        await fs.promises.writeFile(path, body, {
-            encoding: 'binary',
-            flag: 'w'
-        });
+        const cachedFilePath = await this.fetchToCache(url);
+        await fs.promises.copyFile(cachedFilePath, path);
     }
 
     getFileInfo(url: string): FileInfo {
