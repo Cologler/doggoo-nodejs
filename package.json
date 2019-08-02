@@ -37,7 +37,6 @@
     "typescript": "^3.5.3"
   },
   "scripts": {
-    "run": "ts-node src/main.ts",
     "test": "ts-mocha src/**/*.spec.ts",
     "pkg": "pkg dist/main.js -t node12-win -o dist-bin/doggoo",
     "compile": "node src/build-inc && tsc && npm run pkg"
