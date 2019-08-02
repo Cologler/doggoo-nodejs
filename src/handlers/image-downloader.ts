@@ -11,6 +11,7 @@ import { RequestError } from "request-promise-native/errors";
 
 import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
+import { Events } from '../const';
 const { getAttr, AttrSymbols } = require('../utils/attrs');
 
 const IMAGE_EXT = new Set([
@@ -38,7 +39,7 @@ export class ImagesDownloader {
         this._logger = ioc.getRequired<Logger>(Logger);
         this._requireImages = ioc.getRequired<IGenerator>('generator').requireImages;
         if (this._requireImages) {
-            ioc.getRequired<EventEmitter>('event-emitter').on('add-image', (sender, args) => {
+            ioc.getRequired<EventEmitter>('event-emitter').on(Events.addImage, (sender, args) => {
                 this.addImage(args.image);
             });
         }

@@ -6,6 +6,7 @@ import { JSDOM } from 'jsdom';
 import { ioc } from 'anyioc';
 
 import { setAttr, AttrSymbols } from '../utils/attrs';
+import { Events } from "../const";
 
 export class ElementFactory {
     private _eventEmitter: EventEmitter;
@@ -38,7 +39,8 @@ export class ElementFactory {
         setAttr(node, AttrSymbols.RawUrl, url);
         setAttr(node, AttrSymbols.ImageIndex, this._imageIndex);
         this._imageIndex++;
-        this._eventEmitter.emit('add-image', this, {
+
+        this._eventEmitter.emit(Events.addImage, this, {
             image: node
         });
         return node;
