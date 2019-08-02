@@ -4,7 +4,6 @@ import path from 'path';
 import { ioc } from "anyioc";
 
 import { readText } from "../utils/text-reader";
-import { setAttr, AttrSymbols } from '../utils/attrs';
 import { AppOptions } from "../options";
 import { DoggooFlowContext } from '../doggoo';
 import { EasyParser } from './base';
@@ -33,13 +32,12 @@ class TxtFileParser extends EasyParser {
         super();
     }
 
-    async parseChapters(context: DoggooFlowContext) {
+    async parseChapters(_context: DoggooFlowContext) {
         this.hideSource('a .txt file');
 
         const options = ioc.getRequired<AppOptions>('options');
         const filepath = options.source;
-        /** @type {RegExp} */
-        const headerRegex = options.headerRegex || /^第.+([章节话話])/;
+        const headerRegex: RegExp = options.headerRegex || /^第.+([章节话話])/;
 
         let text = await readText(filepath);
         text = text.replace(/\r/g, '');
@@ -74,8 +72,10 @@ class TxtFileParser extends EasyParser {
                         headerType = 'number';
                     }
 
+                    textNode.Nodes
+
                     if (headerType) {
-                        setAttr(textNode, AttrSymbols.HeaderType, headerType);
+                        textNode.HeaderType = headerType;
                     }
                 }
 

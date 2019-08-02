@@ -6,6 +6,7 @@ import { ioc } from "anyioc";
 
 import { Chapter } from '../models/sections';
 import { IGenerator, DoggooFlowContext } from '../doggoo';
+import { Elements } from '../models/elements';
 
 /**
  * a simple stringbuilder.
@@ -43,25 +44,40 @@ export abstract class NodeVisitor {
      * @returns
      * @memberof NodeVisitor
      */
-    visitItem(item: HTMLElement) {
-        switch (item.tagName) {
-            case 'BR':
-                return this.onLineBreak(<HTMLBRElement>item);
-            case 'P':
-                return this.onTextElement(<HTMLParagraphElement>item);
-            case 'IMG':
-                return this.onImageElement(<HTMLImageElement>item);
-            case 'A':
-                return this.onLinkElement(<HTMLAnchorElement>item);
-            default:
-                throw new Error(`Unhandled chapter content type <${item.tagName}>`);
+    visitItem(item: Elements) {
+        if (item instanceof Elements.LineBreak) {
+            return this.onLineBreak(item);
         }
+
+        if (item instanceof Elements.Line) {
+            return this.onLine(item);
+        }
+
+        if (item instanceof Elements.Image) {
+            return this.onImage(item);
+        }
+
+        throw new Error(`Unhandled element types: ${item}`);
     }
 
-    abstract onLineBreak(item: HTMLBRElement): void;
-    abstract onTextElement(item: HTMLParagraphElement): void;
-    abstract onImageElement(item: HTMLImageElement): void;
-    abstract onLinkElement(item: HTMLAnchorElement): void;
+    onLineStart(line: Elements.Line): void { }
+    onLine(line: Elements.Line): void {
+        this.onLineStart(line);
+        for (const node of line.Nodes) {
+            if (node instanceof Elements.Text) {
+                this.onText(node);
+            } else if (node instanceof Elements.Link) {
+                this.onLink(node);
+            }
+        }
+        this.onLineEnd(line);
+    }
+    onLineEnd(line: Elements.Line): void { }
+
+    abstract onLink(link: Elements.Link): void;
+    abstract onText(text: Elements.Text): void;
+    abstract onImage(image: Elements.Image): void;
+    abstract onLineBreak(lineBreak: Elements.LineBreak): void;
 }
 
 export abstract class Generator implements IGenerator {

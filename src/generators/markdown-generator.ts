@@ -4,8 +4,8 @@ import { ioc } from "anyioc";
 
 import { DoggooFlowContext } from '../doggoo';
 import { Novel } from '../models/novel';
-const { getAttr, AttrSymbols } = require('../utils/attrs');
 import { Generator, NodeVisitor, StringBuilder } from './base'
+import { Elements } from "../models/elements";
 
 class MarkdownNodeVisitor extends NodeVisitor {
     private _builder: StringBuilder = new StringBuilder();
@@ -19,26 +19,27 @@ class MarkdownNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak().appendLineBreak();
     }
 
-    onTextElement(item: HTMLParagraphElement) {
-        let text = item.textContent;
-        if (text) {
-            const hl = getAttr(item, AttrSymbols.HeaderLevel);
-            if (hl !== null) {
-                text = '#'.repeat(hl) + ' ' + text;
-            }
-            this._builder.append(text).appendLineBreak();
-        }
+    onLink(link: Elements.Link) {
+        const title = link.Title;
+        const url = link.Url;
+        this._builder.append(`[${title}](${url})`).appendLineBreak();
     }
 
-    onImageElement(item: HTMLImageElement) {
-        const url = getAttr(item, AttrSymbols.RawUrl);
+    onText(node: Elements.Text) {
+        this._builder.append(node.Content).appendLineBreak();
+    }
+
+    onImage(item: Elements.Image) {
+        const url = item.Uri;
         this._builder.append(`![](${url})`).appendLineBreak();
     }
 
-    onLinkElement(item: HTMLAnchorElement) {
-        const title = item.textContent;
-        const url = item.getAttribute('href');
-        this._builder.append(`[${title}](${url})`).appendLineBreak();
+    onLineStart(line: Elements.Line) {
+        const hl = line.HeaderLevel;
+        if (hl !== null) {
+            const text = '#'.repeat(hl) + ' ';
+            this._builder.append(text);
+        }
     }
 
     value() {

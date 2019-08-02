@@ -14,9 +14,9 @@ import { Chapter } from '../models/sections';
 import { Novel } from '../models/novel';
 import { ChapterContext, NodeVisitor } from '../core/node-visitor';
 import { getAbsoluteUrl } from '../utils/url-utils';
-import { setAttr, AttrSymbols } from '../utils/attrs';
 import { IParser, DoggooFlowContext } from '../doggoo';
 import { NotNull } from '../utils/contract';
+import { Elements } from '../models/elements';
 
 function match(): boolean {
     const options = ioc.getRequired<AppOptions>(AppOptions);
@@ -296,9 +296,9 @@ class LightNovelParser implements IParser {
 
         novel.chapters.forEach((chapter, index) => {
             for (const item of chapter.contents) {
-                if (item.tagName === 'P') {
+                if (item instanceof Elements.Line) {
                     const ht = index === 0 ? 'title' : 'chapter';
-                    setAttr(item, AttrSymbols.HeaderType, ht);
+                    item.HeaderType = ht;
                     break;
                 }
             }

@@ -1,10 +1,10 @@
 
 import { ioc } from 'anyioc';
 
-import { getAttr, setAttr, AttrSymbols } from '../utils/attrs';
 import { Novel } from "../models/novel";
 import { Chapter } from "../models/sections";
 import { Logger } from '../utils/logger';
+import { Elements } from '../models/elements';
 
 type HeaderInfo = {
     title: string,
@@ -39,8 +39,8 @@ export class Optimizer {
 
         for (const chapter of novel.chapters) {
             for (const item of chapter.contents) {
-                if (item.tagName === 'P') {
-                    const ht = getAttr(item, AttrSymbols.HeaderType);
+                if (item instanceof Elements.Line) {
+                    const ht = item.HeaderType;
                     if (ht !== null) {
                         headerTypes.add(ht);
                     }
@@ -61,17 +61,17 @@ export class Optimizer {
 
     optimizeChapter(chapter: Chapter, chapterIndex: number) {
         for (const item of chapter.contents) {
-            if (item.tagName === 'P') {
+            if (item instanceof Elements.Line) {
                 let hl: number = 1;
-                const ht = getAttr<string>(item, AttrSymbols.HeaderType);
+                const ht = item.HeaderType;
                 if (ht !== null) {
                     hl += this._headerTypes[ht];
                 }
                 if (hl > 6) {
                     hl = 6; // max header is h6.
                 }
-                setAttr(item, AttrSymbols.HeaderLevel, hl);
-                chapter.title = item.textContent;
+                item.HeaderLevel = hl;
+                chapter.title = item.TextContent;
                 this._headers.push({
                     title: chapter.title || '',
                     level: hl,

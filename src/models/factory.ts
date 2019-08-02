@@ -5,52 +5,46 @@ import { EventEmitter } from "events";
 import { JSDOM } from 'jsdom';
 import { ioc } from 'anyioc';
 
-import { setAttr, AttrSymbols } from '../utils/attrs';
 import { Events } from "../const";
+import { Elements } from './elements';
 
 export class ElementFactory {
     private _eventEmitter: EventEmitter;
-    private _dom: JSDOM;
-    private _document: Document;
     private _imageIndex: number = 0;
 
     constructor() {
         this._eventEmitter = ioc.getRequired<EventEmitter>('event-emitter');
-        this._dom = ioc.getRequired<JSDOM>('dom');
-        this._document = this._dom.window.document;
     }
 
     createLineBreak() {
-        const node = this._document.createElement('br');
-        return node;
+        return new Elements.LineBreak();
     }
 
-    createTextNode(text: string) {
-        return this._document.createTextNode(text);
+    createText(text: string) {
+        return new Elements.Text(text);
     }
 
-    createText() {
-        const node = this._document.createElement('p');
-        return node;
+    createLine() {
+        return new Elements.Line();
     }
 
     createImage(url: string) {
-        const node = this._document.createElement('img');
-        setAttr(node, AttrSymbols.RawUrl, url);
-        setAttr(node, AttrSymbols.ImageIndex, this._imageIndex);
+        const image = new Elements.Image();
+        image.Uri = url;
+        image.Index = this._imageIndex;
         this._imageIndex++;
 
         this._eventEmitter.emit(Events.addImage, this, {
-            image: node
+            image: image
         });
-        return node;
+        return image;
     }
 
     createLink(title: string, url: string) {
-        const node = this._document.createElement('a');
-        node.textContent = title;
-        node.setAttribute('href', url);
-        return node;
+        const link = new Elements.Link();
+        link.Title = title;
+        link.Url = url;
+        return link;
     }
 }
 

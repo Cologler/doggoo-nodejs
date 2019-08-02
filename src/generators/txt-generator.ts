@@ -8,8 +8,8 @@ const fs = require('fs');
 const isInvalid = require('is-invalid-path');
 import { ioc } from "anyioc";
 
-const { getAttr, AttrSymbols } = require('../utils/attrs');
 import { Generator, NodeVisitor, StringBuilder } from './base';
+import { Elements } from "../models/elements";
 
 class TextNodeVisitor extends NodeVisitor {
     private _builder: StringBuilder = new StringBuilder();
@@ -22,23 +22,16 @@ class TextNodeVisitor extends NodeVisitor {
         this._builder.appendLineBreak();
     }
 
-    onTextElement(item: HTMLParagraphElement) {
-        const text = item.textContent;
-        if (text) {
-            this._builder.append(text);
-        }
+    onLink(link: Elements.Link): void {
+        this._builder.append(`${link.Title}(${link.Url}>)`);
     }
 
-    onImageElement(item: HTMLImageElement) {
-        const url = getAttr(item, AttrSymbols.RawUrl);
-        this._builder.append(`<image ${url}>`);
+    onText(text: Elements.Text): void {
+        this._builder.append(text.Content);
     }
 
-    onLinkElement(item: HTMLAnchorElement) {
-        const href = item.getAttribute('href');
-        if (href) {
-            this._builder.append(href);
-        }
+    onImage(image: Elements.Image): void {
+        this._builder.append(`<image ${image.Uri}>`);
     }
 
     value() {

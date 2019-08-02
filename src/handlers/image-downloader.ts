@@ -12,7 +12,7 @@ import { RequestError } from "request-promise-native/errors";
 import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
 import { Events } from '../const';
-const { getAttr, AttrSymbols } = require('../utils/attrs');
+import { Elements } from '../models/elements';
 
 const IMAGE_EXT = new Set([
     '.jpg', '.jpeg', '.png', '.bmp', '.gif'
@@ -54,7 +54,7 @@ export class ImagesDownloader {
         this._logger.info(`download images finished.`);
     }
 
-    addImage(image: HTMLImageElement) {
+    addImage(image: Elements.Image) {
         const dir = 'assets';
         if (this._promises.length === 0) {
             if (!fs.existsSync(dir)) {
@@ -100,8 +100,12 @@ export class ImagesDownloader {
         return filePath;
     }
 
-    async onImage(root: string, index: number, img: HTMLImageElement) {
-        const url = getAttr(img, AttrSymbols.RawUrl);
+    async onImage(root: string, index: number, img: Elements.Image) {
+        const url = img.Uri;
+        if (url === null) {
+            return;
+        }
+
         let ext = (PATH.extname(url) || '.jpg').toLowerCase();
         if (!IMAGE_EXT.has(ext)) {
             ext = '.jpg';

@@ -17,8 +17,8 @@ import { AppOptions } from '../options';
 import { FileInfo, ImagesDownloader } from '../handlers/image-downloader';
 import { DoggooFlowContext, InfoBuilder, AppInfo } from "../doggoo";
 import { Novel } from '../models/novel';
-import * as attrs from '../utils/attrs';
 import { Generator, NodeVisitor } from "./base";
+import { Elements } from '../models/elements';
 
 
 const STYLE_NAME = 'style.css';
@@ -48,6 +48,7 @@ class EpubNodeVisitor extends NodeVisitor {
     private _dom: JSDOM;
     private _document: Document;
     private _rootElement: HTMLDivElement;
+    private _currentLine: HTMLElement | null = null;
 
     constructor(private _context: EpubGenerator, private _filename: string) {
         super();
@@ -86,18 +87,30 @@ class EpubNodeVisitor extends NodeVisitor {
         return super.visitChapter(chapter);
     }
 
+    onLink(node: Elements.Link): void {
+        const a = this._document.createElement('a');
+        a.title = node.Title;
+        a.href = node.Url;
+        (<HTMLElement>this._currentLine).appendChild(a);
+    }
+
+    onText(node: Elements.Text): void {
+        const t = this._document.createTextNode(node.Content);
+        (<HTMLElement>this._currentLine).appendChild(t);
+    }
+
     onLineBreak() {
         // ignore
     }
 
-    onTextElement(item: HTMLParagraphElement) {
-        let el = null;
-        /** @type {number} */
-        const hl = attrs.getAttr<number>(item, attrs.AttrSymbols.HeaderLevel);
+    onLineStart(item: Elements.Line): void {
+        let el: HTMLElement | null = null;
+
+        const hl = item.HeaderLevel;
         if (hl !== null) {
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
-            el.textContent = item.textContent;
+            el.textContent = item.TextContent;
 
             const np = new NavPoint();
             np.LabelText = <string> el.textContent;
@@ -117,17 +130,22 @@ class EpubNodeVisitor extends NodeVisitor {
                 parent.addSubNavPoint(np);
             }
         } else {
-            el = item;
+            el = this._document.createElement("p");
         }
+        this._currentLine = el;
         this._rootElement.appendChild(el);
     }
 
-    onImageElement(item: HTMLImageElement) {
-        const url = attrs.getRequiredAttr<string>(item, attrs.AttrSymbols.RawUrl);
+    onLineEnd() {
+        this._currentLine = null;
+    }
+
+    onImage(item: Elements.Image) {
+        const url = item.Uri as string;
         const fileinfo = this._context.ImagesDownloader.getFileInfo(url);
 
         if (this._context.requireImages) {
-            if (attrs.getAttr<number>(item, attrs.AttrSymbols.ImageIndex) === this.CoverIndex || url === this.CoverIndex) {
+            if (item.Index === this.CoverIndex || url === this.CoverIndex) {
                 this._context.addCoverImage(fileinfo);
             } else {
                 this._context.addAsset(fileinfo);
@@ -136,7 +154,7 @@ class EpubNodeVisitor extends NodeVisitor {
 
         let el = null;
         if (this._context.requireImages) {
-            const elImg = item;
+            const elImg = this._document.createElement('img');
             elImg.setAttribute('src', fileinfo.filename);
             elImg.setAttribute('alt', fileinfo.filename);
             const elDiv = this._document.createElement('div');
@@ -149,16 +167,6 @@ class EpubNodeVisitor extends NodeVisitor {
         }
 
         this._rootElement.appendChild(el);
-    }
-
-    /**
-     *
-     *
-     * @param {HTMLAnchorElement} item
-     * @memberof NodeVisitor
-     */
-    onLinkElement(item: HTMLAnchorElement) {
-        this._rootElement.appendChild(item);;
     }
 
     value() {

@@ -3,9 +3,10 @@
 import { ioc } from "anyioc";
 
 import { ElementFactory } from "./factory";
+import { Elements } from "./elements";
 
 class Section {
-    private _contents: Array<HTMLElement> = [];
+    private _contents: Array<Elements> = [];
     private _factory: ElementFactory;
 
     constructor() {
@@ -13,12 +14,15 @@ class Section {
         this._factory = ioc.getRequired<ElementFactory>(ElementFactory);
     }
 
-    _getLastTextElement() {
+    private _getLastLine() {
         let last = this._contents[this._contents.length - 1];
-        if (!last || last.tagName !== 'P') {
-            this._contents.push(last = this._factory.createText());
+        if (last instanceof Elements.Line) {
+            return last;
+        } else {
+            const newOne = this._factory.createLine();
+            this._contents.push(newOne);
+            return newOne;
         }
-        return last;
     }
 
     addText(text: string) {
@@ -28,8 +32,8 @@ class Section {
             return;
         }
 
-        const last = this._getLastTextElement();
-        last.appendChild(this._factory.createTextNode(text));
+        const last = this._getLastLine();
+        last.Nodes.push(this._factory.createText(text));
         return last;
     }
 
@@ -52,8 +56,8 @@ class Section {
 
     addLink(url: string, title: string) {
         const node = this._factory.createLink(title, url);
-        const last = this._getLastTextElement();
-        last.appendChild(node);
+        const last = this._getLastLine();
+        last.Nodes.push(node);
         return node;
     }
 
@@ -64,13 +68,13 @@ class Section {
     get textContents(): string[] {
         const ret: string[] = [];
         this.contents.forEach(z => {
-            if (z.tagName === 'P') {
+            if (z instanceof Elements.Line) {
                 if (ret.length === 0) {
-                    ret.push(z.textContent || '');
+                    ret.push(z.TextContent);
                 } else { // > 0
-                    ret[ret.length - 1] += z.textContent;
+                    ret[ret.length - 1] += z.TextContent;
                 }
-            } else if (z.tagName === 'BR') {
+            } else if (z instanceof Elements.LineBreak) {
                 if (ret.length > 0) {
                     ret.push('');
                 }
