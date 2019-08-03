@@ -106,8 +106,9 @@ class EpubNodeVisitor extends NodeVisitor {
     onLineStart(item: Elements.Line): void {
         let el: HTMLElement | null = null;
 
-        const hl = item.HeaderLevel;
+        let hl = item.HeaderLevel;
         if (hl !== null) {
+            hl = Math.min(hl, 6); // max header is h6.
             el = this._document.createElement(`h${hl}`);
             //el.style.textAlign = 'center';
             el.textContent = item.TextContent;

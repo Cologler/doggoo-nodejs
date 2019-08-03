@@ -14,7 +14,7 @@ type HeaderInfo = {
 };
 
 export class Optimizer {
-    private _headerTypes: {
+    private _headerTypesLevelMap: {
         [type: string]: number
     } = {}; // headerType map to level.
     private _headers: Array<HeaderInfo> = [];
@@ -52,28 +52,23 @@ export class Optimizer {
         let levelOffset = 0;
         for (const typeName of HeaderTypes) {
             if (headerTypes.has(typeName)) {
-                this._headerTypes[typeName] = levelOffset++;
+                this._headerTypesLevelMap[typeName] = levelOffset++;
             }
         }
     }
 
     optimizeChapter(chapter: Chapter, chapterIndex: number) {
         for (const line of chapter.Lines) {
-            let hl: number = 1;
-            const ht = line.HeaderType;
-            if (ht !== null) {
-                hl += this._headerTypes[ht];
+            const headerType = line.HeaderType;
+            if (headerType !== null) {
+                const hl = this._headerTypesLevelMap[headerType] + 1;
+                line.HeaderLevel = hl;
+                chapter.title = line.TextContent;
+                this._headers.push({
+                    title: chapter.title || '',
+                    level: hl,
+                });
             }
-            if (hl > 6) {
-                hl = 6; // max header is h6.
-            }
-            line.HeaderLevel = hl;
-            chapter.title = line.TextContent;
-            this._headers.push({
-                title: chapter.title || '',
-                level: hl,
-            });
-            break;
         }
 
         // ensure each line endswith a line break
