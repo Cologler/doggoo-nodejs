@@ -1,3 +1,4 @@
+import { HeaderTypes } from '../const';
 export namespace Elements {
     interface IElement {
         readonly TextContentLength: number;
@@ -35,7 +36,7 @@ export namespace Elements {
 
     export class Line implements IElement {
         public Nodes: Array<LineNodeType> = [];
-        public HeaderType: string | null = null;
+        public HeaderType: HeaderTypes | null = null;
         public HeaderLevel: number | null = null;
 
         get TextContentLength() {

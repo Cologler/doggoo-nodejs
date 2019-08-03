@@ -5,6 +5,8 @@ import { Novel } from "../models/novel";
 import { Chapter } from "../models/sections";
 import { Logger } from '../utils/logger';
 import { Elements } from '../models/elements';
+import { HeaderTypes } from '../const';
+import { ElementFactory } from '../models/factory';
 
 type HeaderInfo = {
     title: string,
@@ -16,6 +18,7 @@ export class Optimizer {
         [type: string]: number
     } = {}; // headerType map to level.
     private _headers: Array<HeaderInfo> = [];
+    private _factory = ioc.getRequired<ElementFactory>(ElementFactory);
 
     invoke(context: any) {
         this.run(context.state.novel);
@@ -35,24 +38,19 @@ export class Optimizer {
     }
 
     prepareOptimize(novel: Novel) {
-        const headerTypes = new Set();
+        const headerTypes = new Set<string>();
 
         for (const chapter of novel.chapters) {
-            for (const item of chapter.Contents) {
-                if (item instanceof Elements.Line) {
-                    const ht = item.HeaderType;
-                    if (ht !== null) {
-                        headerTypes.add(ht);
-                    }
-                    break;
+            for (const item of chapter.Lines) {
+                const ht = item.HeaderType;
+                if (ht !== null) {
+                    headerTypes.add(ht);
                 }
             }
         }
 
         let levelOffset = 0;
-        for (const typeName of [
-            'title', 'chapter', 'section', 'number'
-        ]) {
+        for (const typeName of HeaderTypes) {
             if (headerTypes.has(typeName)) {
                 this._headerTypes[typeName] = levelOffset++;
             }
@@ -60,24 +58,37 @@ export class Optimizer {
     }
 
     optimizeChapter(chapter: Chapter, chapterIndex: number) {
-        for (const item of chapter.Contents) {
-            if (item instanceof Elements.Line) {
-                let hl: number = 1;
-                const ht = item.HeaderType;
-                if (ht !== null) {
-                    hl += this._headerTypes[ht];
-                }
-                if (hl > 6) {
-                    hl = 6; // max header is h6.
-                }
-                item.HeaderLevel = hl;
-                chapter.title = item.TextContent;
-                this._headers.push({
-                    title: chapter.title || '',
-                    level: hl,
-                });
-                break;
+        for (const line of chapter.Lines) {
+            let hl: number = 1;
+            const ht = line.HeaderType;
+            if (ht !== null) {
+                hl += this._headerTypes[ht];
             }
+            if (hl > 6) {
+                hl = 6; // max header is h6.
+            }
+            line.HeaderLevel = hl;
+            chapter.title = line.TextContent;
+            this._headers.push({
+                title: chapter.title || '',
+                level: hl,
+            });
+            break;
         }
+
+        // ensure each line endswith a line break
+        const newContents: Elements[] = [];
+        for (const item of chapter.Contents) {
+            if (!(item instanceof Elements.LineBreak)) {
+                if (newContents[newContents.length - 1] instanceof Elements.Line) {
+                    newContents.push(this._factory.createLineBreak());
+                }
+            }
+            newContents.push(item);
+        }
+        if (newContents[newContents.length - 1] instanceof Elements.Line) {
+            newContents.push(this._factory.createLineBreak());
+        }
+        chapter.Contents = newContents;
     }
 }

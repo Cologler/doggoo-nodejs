@@ -7,6 +7,7 @@ import { readText } from "../utils/text-reader";
 import { AppOptions } from "../options";
 import { DoggooFlowContext } from '../doggoo';
 import { EasyParser } from './base';
+import { HeaderTypes } from '../const';
 
 function match() {
     const options = ioc.getRequired<AppOptions>('options');
@@ -60,7 +61,7 @@ class TxtFileParser extends EasyParser {
 
             if (textNode) {
                 if (headerMatch && headerMatch[1]) {
-                    let headerType = null;
+                    let headerType: HeaderTypes | null = null;
 
                     if (/[章]/.test(headerMatch[1])) {
                         headerType = 'chapter';
@@ -71,8 +72,6 @@ class TxtFileParser extends EasyParser {
                     } else {
                         headerType = 'number';
                     }
-
-                    textNode.Nodes
 
                     if (headerType) {
                         textNode.HeaderType = headerType;
