@@ -38,14 +38,11 @@ export class Optimizer {
     }
 
     prepareOptimize(novel: Novel) {
-        const headerTypes = new Set<string>();
+        const headerTypes = new Set<string | null>();
 
         for (const chapter of novel.chapters) {
-            for (const item of chapter.Lines) {
-                const ht = item.HeaderType;
-                if (ht !== null) {
-                    headerTypes.add(ht);
-                }
+            for (const line of chapter.Lines) {
+                headerTypes.add(line.HeaderType);
             }
         }
 
