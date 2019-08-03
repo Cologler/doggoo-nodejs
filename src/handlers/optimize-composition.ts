@@ -38,7 +38,7 @@ export class Optimizer {
         const headerTypes = new Set();
 
         for (const chapter of novel.chapters) {
-            for (const item of chapter.contents) {
+            for (const item of chapter.Contents) {
                 if (item instanceof Elements.Line) {
                     const ht = item.HeaderType;
                     if (ht !== null) {
@@ -60,7 +60,7 @@ export class Optimizer {
     }
 
     optimizeChapter(chapter: Chapter, chapterIndex: number) {
-        for (const item of chapter.contents) {
+        for (const item of chapter.Contents) {
             if (item instanceof Elements.Line) {
                 let hl: number = 1;
                 const ht = item.HeaderType;

@@ -33,7 +33,7 @@ export class StringBuilder {
 
 export abstract class NodeVisitor {
     visitChapter(chapter: Chapter) {
-        chapter.contents.forEach(z => this.visitItem(z));
+        chapter.Contents.forEach(z => this.visitItem(z));
         return this;
     }
 

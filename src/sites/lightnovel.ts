@@ -228,14 +228,14 @@ class LightNovelParser implements IParser {
             return;
         }
 
-        let lines = firstChapter.textContents;
+        let lines = firstChapter.Lines;
 
         // title
-        const firstLine = lines[0] || null;
-        if (firstLine) {
-            if (!/^[\-=]+$/.test(firstLine)) {
-                novel.title = firstLine || null;
-                lines = lines.slice(1);
+        while (lines) {
+            const line = <Elements.Line> lines.shift();
+            if (!/^[\-=]+$/.test(line.TextContent)) {
+                novel.title = line.TextContent;
+                break;
             }
         }
 
@@ -245,8 +245,9 @@ class LightNovelParser implements IParser {
 
         // author
         for (const line of lines) {
-            if (/作者/.test(line)) {
-                const match = line.match(/作者[：:]\s*(\W+)\s*$/);
+            const text = line.TextContent;
+            if (/作者/.test(text)) {
+                const match = text.match(/作者[：:]\s*(\W+)\s*$/);
                 if (match) {
                     novel.author = match[1];
                     break;
@@ -295,7 +296,7 @@ class LightNovelParser implements IParser {
         this.buildNovelInfo(novel);
 
         novel.chapters.forEach((chapter, index) => {
-            for (const item of chapter.contents) {
+            for (const item of chapter.Contents) {
                 if (item instanceof Elements.Line) {
                     const ht = index === 0 ? 'title' : 'chapter';
                     item.HeaderType = ht;

@@ -6,21 +6,20 @@ import { ElementFactory } from "./factory";
 import { Elements } from "./elements";
 
 class Section {
-    private _contents: Array<Elements> = [];
+    Contents: Array<Elements> = [];
     private _factory: ElementFactory;
 
     constructor() {
-        this._contents = [];
         this._factory = ioc.getRequired<ElementFactory>(ElementFactory);
     }
 
     private _getLastLine() {
-        let last = this._contents[this._contents.length - 1];
+        let last = this.Contents[this.Contents.length - 1];
         if (last instanceof Elements.Line) {
             return last;
         } else {
             const newOne = this._factory.createLine();
-            this._contents.push(newOne);
+            this.Contents.push(newOne);
             return newOne;
         }
     }
@@ -38,19 +37,19 @@ class Section {
     }
 
     addLineBreak() {
-        if (this._contents.length === 0) {
+        if (this.Contents.length === 0) {
             // ignore leading <br/>
             return;
         }
 
         const node = this._factory.createLineBreak();
-        this._contents.push(node);
+        this.Contents.push(node);
         return node;
     }
 
     addImage(url: string) {
         const node = this._factory.createImage(url);
-        this._contents.push(node);
+        this.Contents.push(node);
         return node;
     }
 
@@ -61,13 +60,15 @@ class Section {
         return node;
     }
 
-    get contents() {
-        return this._contents;
+    get Lines(): Elements.Line[] {
+        return this.Contents.filter<Elements.Line>(<(value: Elements) => value is Elements.Line>(
+            z => z instanceof Elements.Line
+        ));
     }
 
     get textContents(): string[] {
         const ret: string[] = [];
-        this.contents.forEach(z => {
+        this.Contents.forEach(z => {
             if (z instanceof Elements.Line) {
                 if (ret.length === 0) {
                     ret.push(z.TextContent);

@@ -69,6 +69,19 @@ export namespace Elements {
             return '';
         }
     }
+
+    /**
+     * Note for generate:
+     *
+     * <Line> node implicit endswith <LineBreak>, that mean:
+     *
+     * <Line1><Line2><LineBreak><Line3> generate:
+     *   Line1\nLine2\nLine3\n
+     *
+     * <Line1><Line2><Line3><LineBreak> generate:
+     *   Line1\nLine2\nLine3\n
+    */
+
 }
 
 export type Elements = Elements.Line | Elements.Image | Elements.LineBreak;
