@@ -17,6 +17,7 @@
     "request": "^2.88.0",
     "request-debug": "^0.2.0",
     "request-promise-native": "^1.0.7",
+    "sanitize-filename": "^1.6.3",
     "uuid": "^3.3.2",
     "xml-escape": "^1.1.0",
     "xmlserializer": "^0.6.1"

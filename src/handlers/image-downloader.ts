@@ -8,6 +8,7 @@ import { EventEmitter } from 'events';
 import { ioc } from 'anyioc';
 import request from 'request-promise-native';
 import { RequestError } from "request-promise-native/errors";
+import sanitize from "sanitize-filename";
 
 import { IGenerator } from '../doggoo';
 import { Logger } from '../utils/logger';
@@ -80,7 +81,9 @@ export class ImagesDownloader {
     }
 
     async fetchToCache(url: string): Promise<string> {
-        const fileName = url.replace(/[:/]/g, '#');
+        const fileName = sanitize(url, {
+            replacement: '#'
+        });
         const filePath = PATH.join(CacheDir, fileName);
 
         if (!fs.existsSync(filePath)) {
