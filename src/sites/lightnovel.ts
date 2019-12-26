@@ -33,7 +33,7 @@ export function matchUrl(urlString: string): boolean {
         }
 
         // example: `/thread-901251-1-1.html`
-        if (/^\/thread-\d+-1-\d+.html$/.test(<string>url.pathname)) {
+        if (/^\/thread-\d+-\d+-\d+.html$/.test(<string>url.pathname)) {
             return true;
         }
     }
