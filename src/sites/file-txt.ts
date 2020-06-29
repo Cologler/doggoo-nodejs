@@ -50,36 +50,48 @@ class TxtFileParser extends EasyParser {
 
         let chapter = null;
         for (const line of text.split(/\n/g)) {
-            const t = this.convertText(line);
-
-            const headerMatch = line.match(headerRegex);
-            if (chapter === null || headerMatch) {
-                chapter = this.createChapter();
-            }
-
-            const textNode = chapter.addText(t);
-
-            if (textNode) {
-                if (headerMatch && headerMatch[1]) {
-                    let headerType: HeaderTypes | null = null;
-
-                    if (/[章]/.test(headerMatch[1])) {
-                        headerType = 'chapter';
-                    } else if (/[节]/.test(headerMatch[1])) {
-                        headerType = 'section';
-                    } else if (/[话話]/.test(headerMatch[1])) {
-                        headerType = 'number';
-                    } else {
-                        headerType = 'number';
-                    }
-
-                    if (headerType) {
-                        textNode.HeaderType = headerType;
-                    }
+            if (line.startsWith('<image "') && line.endsWith('">')) { // image part
+                if (chapter === null) {
+                    chapter = this.createChapter();
                 }
 
-                chapter.addLineBreak();
+                chapter.addImage(line.substring(8, line.length - 2));
+
+            } else {
+                const t = this.convertText(line);
+                console.info(`in: ${line}`)
+                console.info(`out: ${t}`)
+
+                const headerMatch = line.match(headerRegex);
+                if (chapter === null || headerMatch) {
+                    chapter = this.createChapter();
+                }
+
+                const textNode = chapter.addText(t);
+
+                if (textNode) {
+                    if (headerMatch && headerMatch[1]) {
+                        let headerType: HeaderTypes | null = null;
+
+                        if (/[章]/.test(headerMatch[1])) {
+                            headerType = 'chapter';
+                        } else if (/[节]/.test(headerMatch[1])) {
+                            headerType = 'section';
+                        } else if (/[话話]/.test(headerMatch[1])) {
+                            headerType = 'number';
+                        } else {
+                            headerType = 'number';
+                        }
+
+                        if (headerType) {
+                            textNode.HeaderType = headerType;
+                        }
+                    }
+
+                    chapter.addLineBreak();
+                }
             }
+
         }
     }
 }

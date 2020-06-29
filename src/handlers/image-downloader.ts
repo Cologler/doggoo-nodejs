@@ -67,6 +67,10 @@ export class ImagesDownloader {
     }
 
     async fetchBody(url: string): Promise<Buffer> {
+        if (fs.existsSync(url)) {
+            return await fs.promises.readFile(url);
+        }
+
         try {
             return await request.get(url, {
                 encoding: null, // for buffer
