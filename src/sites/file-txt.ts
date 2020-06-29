@@ -43,11 +43,6 @@ class TxtFileParser extends EasyParser {
         let text = await readText(filepath);
         text = text.replace(/\r/g, '');
 
-        /*
-         * TODO: add image from txt
-         * like: <image FILE_PATH>
-         */
-
         let chapter = null;
         for (const line of text.split(/\n/g)) {
             if (line.startsWith('<image "') && line.endsWith('">')) { // image part
@@ -59,8 +54,6 @@ class TxtFileParser extends EasyParser {
 
             } else {
                 const t = this.convertText(line);
-                console.info(`in: ${line}`)
-                console.info(`out: ${t}`)
 
                 const headerMatch = line.match(headerRegex);
                 if (chapter === null || headerMatch) {
